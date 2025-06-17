@@ -16,7 +16,8 @@ import Colors from '../constant/Colors';
 import PrimaryButton from '../components/PrimaryButton';
 import CountryPicker from '../components/CountryPicker';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
+import {SignInApi} from '../Apis'
+import { showMessage } from 'react-native-flash-message';
 const {width, height} = Dimensions.get('window');
 
 const LoginScreen = ({navigation}) => {
@@ -29,6 +30,66 @@ const LoginScreen = ({navigation}) => {
   const [flag, setFlag] = useState(require('../assets/flags/nl.png'));
   const [countryName, setCountryName] = useState('Netherlands');
   const [countryCode, setCountryCode] = useState('31');
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+    const validate = () => {
+      let valid = true;
+      let tempErrors = {};
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email.trim()) {
+        tempErrors.email = 'Email is required';
+        valid = false;
+      } else if (!emailRegex.test(email)) {
+        tempErrors.email = 'Invalid email format';
+        valid = false;
+      }
+  
+      if (!password.trim()) {
+        tempErrors.password = 'Password is required';
+        valid = false;
+      } else if (password.length < 6) {
+        tempErrors.password = 'Password must be at least 6 characters';
+        valid = false;
+      }
+  
+      setErrors(tempErrors);
+      return valid;
+    };
+   
+    const onRegister = async () => {
+      if (validate()) {
+        try {
+          setIsLoading(true);
+          let data = {
+            email: email,
+            password: password
+          };
+          const res = await SignInApi(data);
+          console.log("🚀 ~ onRegister ~ res:", res)
+          if (res.status == '201') {
+            setIsLoading(false);
+            showMessage({
+              message: res.message,
+              type: 'success',
+            });
+            navigation.navigate('MainStack')
+          }
+        } catch (error) {
+          setIsLoading(false);
+          if (error?.response && error?.response.status === 400) {
+            console.log('response=======12>',error.response.data.errors);
+            const errorMsg = error?.response?.data.errors;
+              showMessage({message:errorMsg,type:'danger'})
+           
+          }
+        }
+        // Submit to your API here
+      } else {
+        setIsLoading(false)
+        console.log('❌ Validation Failed');
+      }
+    };
   return (
     <SafeAreaView style={{flex: 1}}>
       <ScrollView>
@@ -102,7 +163,7 @@ const LoginScreen = ({navigation}) => {
               />
             </>
           )}
-
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
           {selectedTab === 'phone' && (
             <View style={styles.container1}>
               <Text style={styles.label}>Phone Number*</Text>
@@ -147,12 +208,12 @@ const LoginScreen = ({navigation}) => {
               </TouchableOpacity>
             }
           />
-
+       {errors.password && <Text style={styles.error}>{errors.password}</Text>}
           <TouchableOpacity
             onPress={() => navigation.navigate('ForgotPassword')}>
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
-          <PrimaryButton title="LOGIN" width={'100%'} height={60} onPress={()=> navigation.navigate('MainStack')} />
+          <PrimaryButton title="LOGIN" width={'100%'} height={60} onPress={onRegister} isLoading={isLoading} />
 
           {/* <TouchableOpacity style={styles.loginBtn}>
         <Text style={styles.loginText}>LOGIN</Text>
@@ -318,5 +379,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#ddd',
     paddingBottom: 5,
+  },
+    error: {
+    color: 'red',
+    paddingLeft: 5,
+    paddingVertical: 10,
   },
 });

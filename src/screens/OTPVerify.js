@@ -13,15 +13,61 @@ import Colors from '../constant/Colors';
 import BackButton from '../components/BackButton';
 import PrimaryButton from '../components/PrimaryButton';
 import CountryPicker from '../components/CountryPicker';
+import {EmailVerifyAPI} from '../Apis';
+import {showMessage} from 'react-native-flash-message';
 const {height, width} = Dimensions.get('window');
 
-const OTPVerifyScreen = ({navigation}) => {
+const OTPVerifyScreen = ({navigation, route}) => {
+  const {email} = route.params;
+  console.log('🚀 ~ OTPVerifyScreen ~ route:', email);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef([]);
 
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [error, setError] = useState('');
+
   const handleChange = (text, index) => {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
     if (text.length === 1 && index < 5) {
       inputRefs.current[index + 1].focus();
+    }
+    if (text === '' && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handleSubmit = async () => {
+    const joinedOtp = otp.join('');
+    if (joinedOtp.length !== 6 || otp.includes('')) {
+      showMessage({
+        message: 'Please enter the full 6-digit OTP.',
+        type: 'danger',
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      let body = {
+        email: email,
+        otp: otp,
+      };
+      const res = await EmailVerifyAPI(body);
+      console.log('🚀 ~ handleSubmit ~ res:', res);
+      setIsLoading(false);
+    } catch (error) {
+      console.log('🚀 ~ handleSubmit ~ error:', error.response);
+      setIsLoading(false);
+      if (error?.response && error?.response.status === 400) {
+        const errorMsg = error?.response.data.message;
+        console.log('🚀 ~ handleSubmit ~ errorMsg:', errorMsg);
+
+        showMessage({message: errorMsg, type: 'danger'});
+      }
     }
   };
   return (
@@ -44,16 +90,14 @@ const OTPVerifyScreen = ({navigation}) => {
             style={styles.otpInput}
             keyboardType="number-pad"
             maxLength={1}
-            onChangeText={text => {
-              if (text.length === 1 && index < 5) {
-                inputRefs.current[index + 1].focus();
-              }
-              if (text === '' && index > 0) {
-                inputRefs.current[index - 1].focus();
-              }
-            }}
+            value={otp[index]}
+            onChangeText={text => handleChange(text, index)}
             onKeyPress={({nativeEvent}) => {
-              if (nativeEvent.key === 'Backspace' && index > 0) {
+              if (
+                nativeEvent.key === 'Backspace' &&
+                otp[index] === '' &&
+                index > 0
+              ) {
                 inputRefs.current[index - 1].focus();
               }
             }}
@@ -67,7 +111,8 @@ const OTPVerifyScreen = ({navigation}) => {
         title="Continue"
         width={'100%'}
         height={60}
-        onPress={() => navigation.navigate('ResetPassword')}
+        onPress={handleSubmit}
+        isLoading={isLoading}
       />
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.backToLogin}>Back to Login</Text>
@@ -135,7 +180,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '600',
-    color:Colors.primary
+    color: Colors.primary,
   },
   resendText: {
     color: '#0066FF',

@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Colors from '../constant/Colors';
-const PrimaryButton = ({ title, onPress, style, textStyle, disabled,width,height }) => {
+const PrimaryButton = ({ title, onPress, style, textStyle, disabled,width,height,isLoading }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -9,7 +9,8 @@ const PrimaryButton = ({ title, onPress, style, textStyle, disabled,width,height
       activeOpacity={0.8}
       disabled={disabled}
     >
-      <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+    
+      {isLoading ? <ActivityIndicator color={"#ffffff"} size={"small"}/> : <Text style={[styles.buttonText, textStyle]}>{title}</Text>}
     </TouchableOpacity>
   );
 };

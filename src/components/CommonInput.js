@@ -10,6 +10,7 @@ const CommonInput = ({
   placeholder,
   secureTextEntry = false,
   rightIcon,
+  isEdit
 }) => {
   return (
     <View style={styles.container1}>
@@ -22,6 +23,7 @@ const CommonInput = ({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
+          editable={isEdit}
         />
         {rightIcon}
       </View>

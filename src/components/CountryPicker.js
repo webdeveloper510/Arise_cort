@@ -89,7 +89,7 @@ const CountryPicker = ({
                   data={filterData}
                   renderItem={({ item }) => (
                     <Item
-                      title={item.name}
+                      title={item.alpha2Code}
                       flag={item.flag}
                       code={item.callingCode}
                     />

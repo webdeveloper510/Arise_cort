@@ -6,8 +6,12 @@ import CircularProgress  from '../components/CircularProgress';
 import theme from '../constant/theme';
 import BackButton from '../components/BackButton';
 const { width, height } = Dimensions.get('window');
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Onboarding4 = ({ navigation }) => {
+  const onSubmit= async()=>{
+    await AsyncStorage.setItem('isOnboarded','true')
+    navigation.replace('AuthStack')
+  }
   return (
     <View style={styles.container}>
         <BackButton navigation={navigation}/>
@@ -27,7 +31,7 @@ const Onboarding4 = ({ navigation }) => {
       />
 
       <View style={styles.bottomSection}>
-        <PrimaryButton title="GO" onPress={() => navigation.replace('AuthStack')} width={'80%'} height={60}/>
+        <PrimaryButton title="GO" onPress={() => onSubmit()} width={'80%'} height={60}/>
        <View style={{ marginTop: 0 }}>
           <CircularProgress  progress={100}  />
         </View>

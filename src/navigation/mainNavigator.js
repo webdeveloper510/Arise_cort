@@ -7,6 +7,7 @@ import OnboardingStack from './OnboardingStack';
 import AuthStack from './AuthStack';
 import MainStack from './mainStack';
 import Colors from '../constant/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Stack = createNativeStackNavigator();
 
 const MainNavigator = () => {
@@ -15,10 +16,22 @@ const MainNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // simulate async check
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    const checkInitialState = async () => {
+      try {
+        const onboarded = await AsyncStorage.getItem('isOnboarded');
+        const userToken = await AsyncStorage.getItem('TOKEN'); // from your login API
+
+        setIsOnboarded(onboarded === 'true');
+        setIsLoggedIn(!!userToken);
+
+      } catch (error) {
+        console.log('Error reading onboarding/login state:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkInitialState();
   }, []);
 
   if (isLoading) return <SplashScreen />;

@@ -11,7 +11,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Feather from 'react-native-vector-icons/Feather';
 import CommonHeader from '../components/CommonHeader';
 import theme from '../constant/theme';
-
+import PrimaryButton from '../components/PrimaryButton';
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dates = [3, 4, 5, 6, 7, 8, 9];
 const durationOptions = [1, 2];
@@ -140,6 +140,7 @@ const BookAppointmentScreen = () => {
           );
         })}
       </View>
+         <PrimaryButton title="Select Court" width={'100%'} height={60} />
       <View style={{height:60}}/>
     </ScrollView>
   );
