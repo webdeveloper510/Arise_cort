@@ -68,12 +68,13 @@ const LoginScreen = ({navigation}) => {
           const res = await SignInApi(data);
           console.log("🚀 ~ onRegister ~ res:", res)
           if (res.status == '201') {
+            console.log("🚀 ~ onRegister ~ res:", res)
             setIsLoading(false);
             showMessage({
               message: res.message,
               type: 'success',
             });
-            navigation.navigate('MainStack')
+            // navigation.navigate('MainStack')
           }
         } catch (error) {
           setIsLoading(false);
@@ -210,7 +211,7 @@ const LoginScreen = ({navigation}) => {
           />
        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
           <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}>
+            onPress={() => navigation.navigate('ForgotPassword',{type:selectedTab})}>
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
           <PrimaryButton title="LOGIN" width={'100%'} height={60} onPress={onRegister} isLoading={isLoading} />

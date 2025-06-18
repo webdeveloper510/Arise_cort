@@ -54,10 +54,13 @@ const OTPVerifyScreen = ({navigation, route}) => {
       setIsLoading(true);
       let body = {
         email: email,
-        otp: otp,
+        otp: otp.join(''),
       };
+      console.log("🚀 ~ handleSubmit ~ body:", otp)
       const res = await EmailVerifyAPI(body);
       console.log('🚀 ~ handleSubmit ~ res:', res);
+      showMessage({message:res.message,type:"success"})
+      navigation.navigate('ResetPassword',{email:email})
       setIsLoading(false);
     } catch (error) {
       console.log('🚀 ~ handleSubmit ~ error:', error.response);

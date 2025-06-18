@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,21 +6,63 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
-  TextInput
+  TextInput,
 } from 'react-native';
 import theme from '../constant/theme';
 import Colors from '../constant/Colors';
 import BackButton from '../components/BackButton';
 import PrimaryButton from '../components/PrimaryButton';
 import CountryPicker from '../components/CountryPicker';
+import CommonInput from '../components/CommonInput';
+import { showMessage } from 'react-native-flash-message';
+import { forgotPasswordApi } from '../Apis';
 const {height, width} = Dimensions.get('window');
 
-const ForgotScreen = ({navigation}) => {
-      const [modalVisible, setModalVisible] = useState(false);
-      const [phone, setPhone] = useState('');
-      const [flag, setFlag] = useState(require('../assets/flags/nl.png'));
-      const [countryName, setCountryName] = useState('Netherlands');
-      const [countryCode, setCountryCode] = useState('31');
+const ForgotScreen = ({navigation, route}) => {
+  const {type} = route.params;
+  console.log('🚀 ~ ForgotScreen ~ route:', type);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [flag, setFlag] = useState(require('../assets/flags/nl.png'));
+  const [countryName, setCountryName] = useState('Netherlands');
+  const [countryCode, setCountryCode] = useState('31');
+  const [email,setEmail] = useState('');
+  const [isLoading,setIsLoading] = useState(false)
+  const handleSubmit = async () => {
+  // Email validation
+
+  if (!email || email.trim() === '') {
+    showMessage({message: 'Email is required', type: 'danger'});
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showMessage({message: 'Enter a valid email address', type: 'danger'});
+    return;
+  }
+
+  try {
+    setIsLoading(true);
+    let body = {
+      email: email
+    };
+    const res = await forgotPasswordApi(body);
+    console.log('🚀 ~ handleSubmit ~ res:', res);
+    showMessage({message:res.message,type:'success'})
+    navigation.navigate('OTPVerify',{email:email})
+    setIsLoading(false);
+  } catch (error) {
+    console.log('🚀 ~ handleSubmit ~ error:', error.response);
+    setIsLoading(false);
+    if (error?.response && error?.response.status === 400) {
+      const errorMsg = error?.response.data.message;
+      console.log('🚀 ~ handleSubmit ~ errorMsg:', errorMsg);
+      showMessage({message: errorMsg, type: 'danger'});
+    }
+  }
+};
+
   return (
     <View style={styles.container}>
       <BackButton navigation={navigation} />
@@ -32,47 +74,66 @@ const ForgotScreen = ({navigation}) => {
       />
       <View style={{height: 60}} />
       <Text style={styles.title}>Forgot Password?</Text>
-      <Text style={styles.subtitle}>Enter Your Phone To Get OTP</Text>
+      <Text style={styles.subtitle}>
+        {type == 'email'
+          ? 'Enter Your Email To Get OTP'
+          : 'Enter Your Phone To Get OTP'}
+      </Text>
+      {type == 'email' ? (
+        <CommonInput
+          label="Email*"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Enter your email"
+        />
+      ) : (
         <View style={styles.container1}>
-                 <Text style={styles.label}>Phone Number*</Text>
-                 <View style={styles.phoneContainer}>
-                   <TextInput
-                     style={styles.phoneInput}
-                     placeholder="Phone Number"
-                     value={phone}
-                     keyboardType="phone-pad"
-                     onChangeText={setPhone}
-                   />
-                   <View style={styles.countryCodeBox}>
-                     <TouchableOpacity
-                       style={styles.contryCodePicker}
-                       onPress={() => setModalVisible(true)}>
-                       <Image source={flag} style={styles.flag} resizeMode="cover" />
-       
-                       <Text style={styles.countryCode}>+{countryCode}</Text>
-                     </TouchableOpacity>
-                     {/* <Text>🇺🇸 +1</Text> */}
-                   </View>
-                 </View>
-               </View>
-      <PrimaryButton title="Reset Password" width={'100%'} height={60} onPress={()=> navigation.navigate('OTPVerify')} />
+          <Text style={styles.label}>Phone Number*</Text>
+          <View style={styles.phoneContainer}>
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="Phone Number"
+              value={phone}
+              keyboardType="phone-pad"
+              onChangeText={setPhone}
+            />
+            <View style={styles.countryCodeBox}>
+              <TouchableOpacity
+                style={styles.contryCodePicker}
+                onPress={() => setModalVisible(true)}>
+                <Image source={flag} style={styles.flag} resizeMode="cover" />
+
+                <Text style={styles.countryCode}>+{countryCode}</Text>
+              </TouchableOpacity>
+              {/* <Text>🇺🇸 +1</Text> */}
+            </View>
+          </View>
+        </View>
+      )}
+      <PrimaryButton
+        title="Reset Password"
+        width={'100%'}
+        height={60}
+        onPress={handleSubmit}
+        isLoading={isLoading}
+      />
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.backToLogin}>Back to Login</Text>
       </TouchableOpacity>
-           <CountryPicker
-          modalVisible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(false);
-          }}
-          flag={flag}
-          countryName={countryName}
-          onPress={(title, flag, code) => {
-            setFlag(flag);
-            setCountryName(title);
-            setCountryCode(code);
-            setModalVisible(false);
-          }}
-        />
+      <CountryPicker
+        modalVisible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}
+        flag={flag}
+        countryName={countryName}
+        onPress={(title, flag, code) => {
+          setFlag(flag);
+          setCountryName(title);
+          setCountryCode(code);
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 };
@@ -115,12 +176,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-    phoneContainer: {
+  phoneContainer: {
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
 
-    container1: {
+  container1: {
     marginBottom: 16,
     borderWidth: 1,
     borderRadius: 12,
@@ -128,7 +189,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     paddingBottom: 5,
   },
-  label:{
+  label: {
     fontSize: 14,
     color: Colors.primary,
     // marginBottom: 4,
@@ -138,7 +199,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     fontFamily: theme.medium,
   },
-    countryCodeBox: {
+  countryCodeBox: {
     // paddingHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -157,22 +218,22 @@ const styles = StyleSheet.create({
     height: 35,
     backgroundColor: '#fff',
   },
-    contryCodePicker: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: '100%',
-      paddingLeft: 15,
-      borderRadius: 100,
-      alignItems: 'center',
-    },
-    flag: {
-      width: 18,
-      height: 14,
-      marginRight: 10,
-    },
-    countryCode: {
-      color: theme.black,
-      fontSize: 12,
-      fontFamily: theme.futuraBold,
-    },
+  contryCodePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: '100%',
+    paddingLeft: 15,
+    borderRadius: 100,
+    alignItems: 'center',
+  },
+  flag: {
+    width: 18,
+    height: 14,
+    marginRight: 10,
+  },
+  countryCode: {
+    color: theme.black,
+    fontSize: 12,
+    fontFamily: theme.futuraBold,
+  },
 });

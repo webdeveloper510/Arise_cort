@@ -13,16 +13,14 @@ import Colors from '../constant/Colors';
 import theme from '../constant/theme';
 import CountryPicker from '../components/CountryPicker';
 import PrimaryButton from '../components/PrimaryButton';
-import {contactUs} from '../Apis';
-import {showMessage} from 'react-native-flash-message';
-const ContactUsScreen = () => {
+const ProfileScreen = () => {
   const [callingCode, setCallingCode] = useState('1');
   const [withCountryNameButton] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [phone, setPhone] = useState('');
   const [flag, setFlag] = useState(require('../assets/flags/nl.png'));
   const [countryName, setCountryName] = useState('Netherlands');
   const [countryCode, setCountryCode] = useState('31');
-  const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -30,107 +28,44 @@ const ContactUsScreen = () => {
     phone: '',
     message: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
+
   const handleChange = (key, value) => {
     setForm({...form, [key]: value});
-  };
-  const validate = () => {
-    const newErrors = {};
-
-    if (!form.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!form.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!form.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!form.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    }
-
-    if (!form.message.trim()) newErrors.message = 'Message is required';
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const onSubmit = async () => {
-    if (validate()) {
-      try {
-        setIsLoading(true);
-        const data = {
-          first_name: form.firstName,
-          last_name: form.lastName,
-          email: form.email,
-          phone: form.phone,
-          message: form.message,
-        };
-        const res = await contactUs(data);
-        console.log('🚀 ~ onSubmit ~ res:', res);
-        if (res.code == '400') {
-          showMessage({message: res.message, type: 'danger'});
-          setIsLoading(false);
-        } else {
-          showMessage({message: res.message, type: 'success'});
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.log('🚀 ~ onSubmit ~ error:', error);
-        setIsLoading(false);
-        if (error?.response?.status === 400) {
-          const errorMsg = error?.response?.data?.message;
-          if (errorMsg?.email)
-            showMessage({message: errorMsg.email, type: 'danger'});
-          if (errorMsg?.phone)
-            showMessage({message: errorMsg.phone, type: 'danger'});
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setIsLoading(false);
-      console.log('❌ Validation Failed');
-    }
   };
 
   return (
     <ScrollView
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>Contact Us</Text>
 
       <CommonInput
         label="First Name*"
-        value={form.firstName}
-        onChangeText={text => handleChange('firstName', text)}
+        // value={password}
+        // onChangeText={setPassword}
         placeholder="Enter here..."
       />
-      {errors.firstName && <Text style={styles.error}>{errors.firstName}</Text>}
+
       <CommonInput
         label="Last Name*"
-        value={form.lastName}
-        onChangeText={text => handleChange('lastName', text)}
+        // value={password}
+        // onChangeText={setPassword}
         placeholder="Last Name*"
       />
-      {errors.lastName && <Text style={styles.error}>{errors.lastName}</Text>}
       <CommonInput
         label="Email Address*"
-        value={form.email}
-        onChangeText={text => handleChange('email', text)}
+        // value={password}
+        // onChangeText={setPassword}
         placeholder="dummy221email.@gmail.com"
       />
-      {errors.email && <Text style={styles.error}>{errors.email}</Text>}
       <View style={styles.container1}>
         <Text style={styles.label}>Phone Number*</Text>
         <View style={styles.phoneContainer}>
           <TextInput
             style={styles.phoneInput}
             placeholder="Phone Number"
-            value={form.phone}
+            value={phone}
             keyboardType="phone-pad"
-            onChangeText={text => handleChange('phone', text)}
+            onChangeText={setPhone}
           />
           <View style={styles.countryCodeBox}>
             <TouchableOpacity
@@ -144,7 +79,6 @@ const ContactUsScreen = () => {
           </View>
         </View>
       </View>
-      {errors.phone && <Text style={styles.error}>{errors.phone}</Text>}
       <View style={styles.container1}>
         <Text style={styles.label}>Message*</Text>
         <TextInput
@@ -157,16 +91,13 @@ const ContactUsScreen = () => {
           onChangeText={text => handleChange('message', text)}
         />
       </View>
-      {errors.message && <Text style={styles.error}>{errors.message}</Text>}
-      <View style={{alignSelf: 'center', width: '100%', alignItems: 'center'}}>
-        <PrimaryButton
-          title="SEND MESSAGE"
-          width={'80%'}
-          height={60}
-          onPress={onSubmit}
-          isLoading={isLoading}
-        />
-      </View>
+      <PrimaryButton
+        title="SEND MESSAGE"
+        width={'100%'}
+        height={60}
+        onPress={() => navigation.navigate('MainStack')}
+      />
+
       <CountryPicker
         modalVisible={modalVisible}
         onRequestClose={() => {
@@ -185,7 +116,7 @@ const ContactUsScreen = () => {
   );
 };
 
-export default ContactUsScreen;
+export default ProfileScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -291,12 +222,5 @@ const styles = StyleSheet.create({
     color: theme.black,
     fontSize: 12,
     fontFamily: theme.futuraBold,
-  },
-  error: {
-    color: 'red',
-    fontSize: 12,
-    marginTop: -10,
-    marginBottom: 10,
-    marginLeft: 10,
   },
 });

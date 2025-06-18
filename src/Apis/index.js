@@ -55,13 +55,13 @@ export const getStipePublishKey = async () => {
 export const SignInApi = async (data) => {
   try {
     const response = await axios.post('login/', data);
-    console.log("🚀 ~ SignInApi ~ response:", response)
-
-    await AsyncStorage.setItem('TOKEN', response?.data?.token);
+    const token = response.data.data
+    console.log("🚀 ~ SignInApi ~ response:", token.token.access)
+    await AsyncStorage.setItem('TOKEN', token.token.access);
     authApi = axios.create({
       baseURL: API_URL,
       headers: {
-        'x-access-token': response?.data?.token,
+        'x-access-token': token.token.access,
       },
     });
     return response.data;
@@ -95,7 +95,7 @@ export const SignUpApi = async (data) => {
 };
 export const forgotPasswordApi = async data => {
   try {
-    const response = await axios.post('/customer/auth/forgot', data);
+    const response = await axios.post('send-reset-email/', data);
     return response.data;
   } catch (error) {
     throw error;
@@ -111,7 +111,7 @@ export const OtpVerifyApi = async data => {
 };
 export const ResetPasswordApi = async data => {
   try {
-    const response = await axios.post('/customer/auth/changeForgotPassword', data);
+    const response = await axios.post('reset-password/', data);
     return response.data;
   } catch (error) {
     throw error;
@@ -138,9 +138,9 @@ export const getmerchantListApi = async data => {
   }
 };
 
-export const getmerchantListApi1 = async data => {
+export const contactUs = async data => {
   try {
-    const response = await axios.post('/customer/merchant/list', data);
+    const response = await axios.post('contact-us/', data);
     return response.data;
   } catch (error) {
     console.log('error============>', error);

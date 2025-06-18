@@ -2,7 +2,6 @@
 
 export const BASE_URL = 'http://3.12.136.26:8000/';
 // export const BASE_URL = 'https://us-central1-wiwiriapp-3.cloudfunctions.net/app/';s
-export const SOCKET_BASE_URL = 'https://api.wiwiriapp.com';
 export const LOGIN_API = BASE_URL + 'user/loginEmail';
 export const SIGN_UP_API = BASE_URL + 'user/userSignUpEmail';
 export const FORGOT_PASS_API = BASE_URL + 'user/forgotPassword';
