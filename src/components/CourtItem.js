@@ -8,8 +8,8 @@ const CourtItem = ({ item, selected, onSelect }) => {
     <TouchableOpacity style={styles.container} onPress={onSelect}>
       <Image source={{ uri: item.logo }} style={styles.logo} />
       <View style={{ flex: 1 }}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.address}>{item.address}</Text>
+        <Text style={styles.name}>{item.description}</Text>
+        <Text style={styles.address}>{item.address_1},{item.city},{item.country}</Text>
       </View>
       <View style={styles.checkWrap}>
         {selected && <Feather name="check" color={Colors.primary} size={20} />}

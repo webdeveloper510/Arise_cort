@@ -18,9 +18,12 @@ import CountryPicker from '../components/CountryPicker';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {SignInApi} from '../Apis'
 import { showMessage } from 'react-native-flash-message';
+import {useDispatch, useSelector} from 'react-redux';
+import { SaveUserInfo } from '../redux/userData';
 const {width, height} = Dimensions.get('window');
 
 const LoginScreen = ({navigation}) => {
+    const dispatch = useDispatch();
   const [selectedTab, setSelectedTab] = useState('phone');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,14 +70,21 @@ const LoginScreen = ({navigation}) => {
           };
           const res = await SignInApi(data);
           console.log("🚀 ~ onRegister ~ res:", res)
-          if (res.status == '201') {
+          if (res.code == '200') {
             console.log("🚀 ~ onRegister ~ res:", res)
+            dispatch(SaveUserInfo(res.data));
             setIsLoading(false);
             showMessage({
               message: res.message,
               type: 'success',
             });
-            // navigation.navigate('MainStack')
+            navigation.navigate('MainStack')
+          }else{
+               setIsLoading(false);
+              showMessage({
+              message: res.message,
+              type: 'danger',
+            });
           }
         } catch (error) {
           setIsLoading(false);

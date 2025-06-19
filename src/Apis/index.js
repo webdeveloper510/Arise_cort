@@ -21,7 +21,7 @@ const retrieveData = async () => {
     authApi = axios.create({
       baseURL: API_URL,
       headers: {
-        'x-access-token': value,
+        Authorization: `Bearer ${value}`,
       },
     });
   } catch (error) {
@@ -56,12 +56,12 @@ export const SignInApi = async (data) => {
   try {
     const response = await axios.post('login/', data);
     const token = response.data.data
-    console.log("🚀 ~ SignInApi ~ response:", token.token.access)
-    await AsyncStorage.setItem('TOKEN', token.token.access);
+    console.log("🚀 ~ SignInApi ~ response:", token.access_token)
+    await AsyncStorage.setItem('TOKEN', token.access_token);
     authApi = axios.create({
       baseURL: API_URL,
       headers: {
-        'x-access-token': token.token.access,
+        Authorization: `Bearer ${token.access_token}`,
       },
     });
     return response.data;
@@ -117,20 +117,26 @@ export const ResetPasswordApi = async data => {
     throw error;
   }
 };
-export const getCategoriesApi = async (limit = 10, page = 1) => {
+export const getCourtById = async (page) => {
   try {
-    const response = await axios.get('/customer/category', {
-      params: {limit, page},
-    });
+    const response = await axios.get(`locations/${page}/`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
-
-export const getmerchantListApi = async data => {
+export const getAllCourts = async () => {
   try {
-    const response = await axios.get('/customer/merchant', {params: data});
+    const response = await axios.get('locations/');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+export const getAllBookinglist = async data => {
+  try {
+    console.log("authApi=====>",authApi)
+    const response = await authApi.get('court-bookings/');
     return response.data;
   } catch (error) {
     console.log('error============>', error);
@@ -147,24 +153,7 @@ export const contactUs = async data => {
     throw error;
   }
 };
-export const getTrendApi = async query => {
-  try {
-    const response = await axios.get('/customer/trends', {params: query});
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const trendViewCount = async query => {
-  try {
-    const response = await authApi.post(`/customer/trends/view/${query}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 export const getTrendOfFollowingApi = async query => {
   try {
     const response = await authApi.get('/customer/trends/following', {

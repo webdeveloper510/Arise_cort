@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,37 +12,57 @@ import Feather from 'react-native-vector-icons/Feather';
 import CommonHeader from '../components/CommonHeader';
 import theme from '../constant/theme';
 import PrimaryButton from '../components/PrimaryButton';
+import {getCourtById} from '../Apis';
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dates = [3, 4, 5, 6, 7, 8, 9];
 const durationOptions = [1, 2];
 
-const courtNumbers = Array.from({ length: 20 }, (_, i) => i + 1);
+const courtNumbers = Array.from({length: 20}, (_, i) => i + 1);
 const disabledCourts = [3, 6, 15, 17]; // example disabled
 
-const BookAppointmentScreen = () => {
+const BookAppointmentScreen = ({navigation, route}) => {
+  const {id} = route.params;
+  console.log('id===========>', id);
   const [selectedDate, setSelectedDate] = useState(4);
   const [startTime, setStartTime] = useState(new Date());
   const [duration, setDuration] = useState(1);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
-
-  const handleTimeConfirm = (date) => {
+  const [isLoading,setIsLoading] = useState(false);
+  const [courtNumbers,setCourtsNumber] = useState([])
+  const handleTimeConfirm = date => {
     setStartTime(date);
     setTimePickerVisible(false);
   };
 
-  const formatTime = (date) =>
-    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = date =>
+    date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
   const getEndTime = () => {
     const end = new Date(startTime);
     end.setHours(end.getHours() + duration);
     return formatTime(end);
   };
+  useEffect(() => {
+    getCourtData();
+  }, [id]);
 
+  const getCourtData = async () => {
+    try {
+      setIsLoading(true)
+      let res = await getCourtById(9);
+      setCourtsNumber(res.courts)
+      console.log('🚀 ~ getCourtData ~ res:', res);
+       setIsLoading(false)
+    } catch (error) {
+          setIsLoading(false)
+      console.log('🚀 ~ getCourtData ~ error:', error);
+    }
+  };
+    console.log("🚀 ~ BookAppointmentScreen ~ isSelected:", selectedCourt)
   return (
     <ScrollView style={styles.container}>
-       <CommonHeader title="Checkout" onBack={() => navigation.goBack()}/>
+      <CommonHeader title="Checkout" onBack={() => navigation.goBack()} />
 
       {/* Date Picker */}
       <Text style={styles.sectionTitle}>Choose Date</Text>
@@ -54,27 +74,32 @@ const BookAppointmentScreen = () => {
               styles.dateItem,
               selectedDate === date && styles.selectedDate,
             ]}
-            onPress={() => setSelectedDate(date)}
-          >
+            onPress={() => setSelectedDate(date)}>
             <Text style={styles.dayText}>{days[i]}</Text>
             <Text
               style={[
                 styles.dateText,
                 selectedDate === date && styles.selectedDateText,
-              ]}
-            >
+              ]}>
               {date}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
-        <View style={{width:'96%',height:1,backgroundColor:'#95ACFF4D',alignSelf:"center",marginTop:20}}/>
+      <View
+        style={{
+          width: '96%',
+          height: 1,
+          backgroundColor: '#95ACFF4D',
+          alignSelf: 'center',
+          marginTop: 20,
+        }}
+      />
       {/* Time Slot */}
       <Text style={styles.sectionTitle}>Time Slot</Text>
       <TouchableOpacity
         style={styles.timeBox}
-        onPress={() => setTimePickerVisible(true)}
-      >
+        onPress={() => setTimePickerVisible(true)}>
         <Text style={styles.timeText}>{formatTime(startTime)}</Text>
       </TouchableOpacity>
 
@@ -91,8 +116,7 @@ const BookAppointmentScreen = () => {
         <Text style={styles.label}>Duration</Text>
         <View style={styles.durationControl}>
           <TouchableOpacity
-            onPress={() => setDuration(Math.max(1, duration - 1))}
-          >
+            onPress={() => setDuration(Math.max(1, duration - 1))}>
             <Text style={styles.durationBtn}>-</Text>
           </TouchableOpacity>
           <Text style={styles.durationText}>{duration} hr</Text>
@@ -108,56 +132,68 @@ const BookAppointmentScreen = () => {
       </View>
 
       {/* Courts */}
-        <View style={{width:'96%',height:1,backgroundColor:'#95ACFF4D',alignSelf:"center",marginTop:20}}/>
+      <View
+        style={{
+          width: '96%',
+          height: 1,
+          backgroundColor: '#95ACFF4D',
+          alignSelf: 'center',
+          marginTop: 20,
+        }}
+      />
 
       <Text style={styles.sectionTitle}>Select Court</Text>
       <View style={styles.courtGrid}>
-        {courtNumbers.map((court) => {
-          const isDisabled = disabledCourts.includes(court);
-          const isSelected = selectedCourt === court;
-
+        {courtNumbers.map(court => {
+          const isSelected = selectedCourt === court.court_number;
+        console.log("🚀 ~ BookAppointmentScreen ~ isSelected:", isSelected)
+       
           return (
             <TouchableOpacity
-              key={court}
-              disabled={isDisabled}
-              onPress={() => setSelectedCourt(court)}
+              key={court.court_number}
+              disabled={!court?.availability}
+              onPress={() => setSelectedCourt(court.court_number)}
               style={[
                 styles.courtBox,
                 isSelected && styles.selectedCourt,
-                isDisabled && styles.disabledCourt,
-              ]}
-            >
+                court?.availability && styles.disabledCourt,
+              ]}>
               <Text
                 style={[
                   styles.courtText,
-                  (isSelected || isDisabled) && { color: 'white' },
-                ]}
-              >
-                Court 
+                  (isSelected || court?.availability) && {color: 'white'},
+                ]}>
+                Court
               </Text>
-              <Text style={{fontSize:18,fontFamily:theme.bold}}>{court.toString().padStart(2, '0')}</Text>
+              <Text style={{fontSize: 18, fontFamily: theme.bold}}>
+                {court.court_number}
+              </Text>
             </TouchableOpacity>
           );
         })}
+          
+         
       </View>
-         <PrimaryButton title="Select Court" width={'100%'} height={60} />
-      <View style={{height:60}}/>
+      <View style={{flex:1,alignItems:'center'}}>
+      <PrimaryButton title="Select Court" width={'70%'} height={60} />
+      </View>
+      <View style={{height: 60}} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#F4F8FE' },
+  container: {flex: 1, padding: 20, backgroundColor: '#F4F8FE'},
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: { fontSize: 18, fontWeight: '600', color: '#1D1D1D' },
+  title: {fontSize: 18, fontWeight: '600', color: '#1D1D1D'},
   sectionTitle: {
     marginTop: 20,
     marginBottom: 10,
-    fontFamily:theme.bold,
+    fontFamily: theme.bold,
     fontSize: 17,
     color: '#2D3A4A',
   },
@@ -174,16 +210,16 @@ const styles = StyleSheet.create({
   selectedDate: {
     backgroundColor: '#95ACFF33',
   },
-  dayText: { fontSize: 12, color: '#777' },
-  dateText: { fontSize: 14, fontWeight: '600', color: '#2D3A4A' },
-  selectedDateText: { color: '#5577FF' },
+  dayText: {fontSize: 12, color: '#777'},
+  dateText: {fontSize: 14, fontWeight: '600', color: '#2D3A4A'},
+  selectedDateText: {color: '#5577FF'},
   timeBox: {
     padding: 15,
     backgroundColor: '#F4F8FE',
     borderRadius: 10,
     marginTop: 10,
-    borderWidth:1,
-    borderColor:'#EBEBEB'
+    borderWidth: 1,
+    borderColor: '#EBEBEB',
   },
   timeText: {
     fontSize: 16,
@@ -227,14 +263,14 @@ const styles = StyleSheet.create({
   },
   courtBox: {
     width: '22%',
-    height:70,
+    height: 70,
     aspectRatio: 1,
     backgroundColor: '#ffffff',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
-    borderWidth:1,
-    borderColor:'#D8E2FE'
+    borderWidth: 1,
+    borderColor: '#D8E2FE',
   },
   selectedCourt: {
     backgroundColor: '#5577FF',
@@ -243,7 +279,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D5DB',
   },
   courtText: {
-    fontFamily:theme.medium,
+    fontFamily: theme.medium,
     color: '#2D3A4A',
     textAlign: 'center',
   },
