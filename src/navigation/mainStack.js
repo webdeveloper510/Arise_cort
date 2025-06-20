@@ -26,6 +26,7 @@ const HomeStack = ()=>{
      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Home'>
       <Stack.Screen name="Home" component={SearchCourtScreen} />
       <Stack.Screen name="BookAppointmentScreen" component={BookAppointmentScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen}/>
      </Stack.Navigator>
   )
 }

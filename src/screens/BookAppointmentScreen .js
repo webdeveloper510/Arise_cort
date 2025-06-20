@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   View,
   Text,
@@ -13,27 +13,36 @@ import CommonHeader from '../components/CommonHeader';
 import theme from '../constant/theme';
 import PrimaryButton from '../components/PrimaryButton';
 import {getCourtById} from '../Apis';
-const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const dates = [3, 4, 5, 6, 7, 8, 9];
+import {Calendar} from 'react-native-calendars';
+import {courtBooking, courtAvailability} from '../Apis';
+import moment from 'moment';
+
 const durationOptions = [1, 2];
 
-const courtNumbers = Array.from({length: 20}, (_, i) => i + 1);
+// const courtNumbers = Array.from({length: 20}, (_, i) => i + 1);
 const disabledCourts = [3, 6, 15, 17]; // example disabled
 
 const BookAppointmentScreen = ({navigation, route}) => {
   const {id} = route.params;
   console.log('id===========>', id);
-  const [selectedDate, setSelectedDate] = useState(4);
+  const [selectedDate, setSelectedDate] = useState(
+    moment().format('YYYY-MM-DD'),
+  );
   const [startTime, setStartTime] = useState(new Date());
   const [duration, setDuration] = useState(1);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
-  const [isLoading,setIsLoading] = useState(false);
-  const [courtNumbers,setCourtsNumber] = useState([])
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
+
+  const [courtNumbers, setCourtsNumber] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
   const handleTimeConfirm = date => {
     setStartTime(date);
     setTimePickerVisible(false);
+    getCourts();
   };
+  console.log('🚀 ~ BookAppointmentScreen ~ date:', startTime);
 
   const formatTime = date =>
     date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
@@ -44,29 +53,163 @@ const BookAppointmentScreen = ({navigation, route}) => {
     return formatTime(end);
   };
   useEffect(() => {
-    getCourtData();
+    // getCourtData();
   }, [id]);
 
+  const availableDates = useMemo(() => {
+    if (!selectedDate) return [];
+    const center = moment(selectedDate);
+    const dates = [];
+    for (let i = -30; i <= 30; i++) {
+      dates.push(center.clone().add(i, 'days').format('YYYY-MM-DD'));
+    }
+    return dates;
+  }, [selectedDate]);
+
+  const handleCalendarSelect = day => {
+    setSelectedDate(day.dateString);
+  };
   const getCourtData = async () => {
     try {
-      setIsLoading(true)
-      let res = await getCourtById(9);
-      setCourtsNumber(res.courts)
-      console.log('🚀 ~ getCourtData ~ res:', res);
-       setIsLoading(false)
+      setIsLoading(true);
+      let res = await getCourtById(16);
+      setCourtsNumber(res.courts);
+      // console.log('🚀 ~ getCourtData ~ 123res:', res);
+      setIsLoading(false);
     } catch (error) {
-          setIsLoading(false)
+      setIsLoading(false);
       console.log('🚀 ~ getCourtData ~ error:', error);
     }
   };
-    console.log("🚀 ~ BookAppointmentScreen ~ isSelected:", selectedCourt)
+
+  const getCourts = async () => {
+    try {
+      const end = new Date(startTime);
+      end.setHours(end.getHours() + duration);
+
+      let body = {
+        location_id: 16,
+        date: selectedDate,
+        start_time: moment(startTime).format('HH:mm:ss'),
+        end_time: moment(end).format('HH:mm:ss'),
+      };
+      console.log("🚀 ~ getCourts ~ body:", body)
+    
+      let res = await courtAvailability(body);
+      console.log("🚀 ~ getCourts ~ res:", res)
+      setCourtsNumber(res.courts);
+
+    } catch (error) {
+      console.log('🚀 ~ getCourts ###############~ error:', error);
+    }
+  };
+
+  const formatDuration = (duration) => {
+  const dur = moment.duration(duration, 'hours');
+  return `${dur.hours()}:${dur.minutes().toString().padStart(2, '0')}:${dur.seconds().toString().padStart(2, '0')}`;
+};
+  const onSubmit = async () => {
+    try {
+      setIsLoading1(true);
+      const end = new Date(startTime);
+      end.setHours(end.getHours() + duration);
+      var body = {
+        booking_date: selectedDate,
+        start_time: moment(startTime).format('HH:mm:ss'),
+        end_time: moment(end).format('HH:mm:ss'),
+        duration_time: formatDuration(duration),
+        court_id: selectedCourt,
+      };
+      console.log('🚀 ~ onSubmit ~ body:', body);
+      const res = await courtBooking(body);
+      console.log('🚀 ~ onSubmit ~ res:', res);
+      navigation.navigate('Checkout')
+      setIsLoading1(false);
+    } catch (error) {
+      setIsLoading1(false);
+      console.log('🚀 ~ onSubmit ~ error#########:', error.response);
+    }
+  };
+  const renderDateItem = ({item}) => {
+    const isEnabled = availableDates.includes(item);
+    console.log('🚀 ~ renderDateItem ~ isEnabled:', isEnabled);
+    const isSelected = item === selectedDate;
+    const isPastDate = moment(item).isBefore(moment(), 'day');
+    return (
+      <TouchableOpacity
+        style={[
+          styles.dateItem,
+          isEnabled ? styles.enabled : styles.disabled,
+          isSelected && styles.selected,
+          isPastDate && {opacity: 0.5},
+        ]}
+        disabled={isPastDate}
+        onPress={() => setSelectedDate(item)}>
+        <Text style={styles.dayText}>
+          {moment(item).format('ddd')} {/* e.g., Mon, Tue */}
+        </Text>
+        <View
+          style={[
+            styles.selectDateStyle,
+            {borderColor: item === selectedDate ? '#0860FB' : '#D8E2FE'},
+          ]}>
+          <Text
+            style={[
+              styles.dateText,
+              {color: item === selectedDate ? '#0860FB' : '#182B4D'},
+            ]}>
+            {moment(item).format('D')} {/* e.g., 4, 5 */}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
   return (
     <ScrollView style={styles.container}>
       <CommonHeader title="Checkout" onBack={() => navigation.goBack()} />
 
       {/* Date Picker */}
-      <Text style={styles.sectionTitle}>Choose Date</Text>
-      <View style={styles.dateRow}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+        <Text style={styles.sectionTitle}>Choose Date</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={{fontSize: 11, color: '#0860FB', paddingRight: 8}}>
+            {moment(selectedDate).format('MMMM D, YYYY')}
+          </Text>
+          <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)}>
+            <Feather name="chevron-down" color="#192C4E" size={20} />
+          </TouchableOpacity>
+        </View>
+      </View>
+      {showCalendar && (
+        <Calendar
+          onDayPress={day => {
+            handleCalendarSelect(day);
+            setShowCalendar(false);
+          }}
+          markedDates={{
+            [selectedDate]: {
+              selected: true,
+              selectedColor: 'blue',
+            },
+          }}
+        />
+      )}
+
+      {selectedDate && (
+        <FlatList
+          data={availableDates}
+          horizontal
+          keyExtractor={item => item}
+          renderItem={renderDateItem}
+          contentContainerStyle={{marginTop: 20}}
+        />
+      )}
+      {/* <View style={styles.dateRow}>
         {dates.map((date, i) => (
           <TouchableOpacity
             key={i}
@@ -85,7 +228,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </View> */}
       <View
         style={{
           width: '96%',
@@ -96,11 +239,41 @@ const BookAppointmentScreen = ({navigation, route}) => {
         }}
       />
       {/* Time Slot */}
-      <Text style={styles.sectionTitle}>Time Slot</Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+        <Text style={styles.sectionTitle}>Time Slot</Text>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={{fontSize: 11, color: '#0860FB', paddingRight: 8}}>
+            {moment(selectedDate).format('MMMM D, YYYY')}
+          </Text>
+          <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)}>
+            <Feather name="chevron-down" color="#192C4E" size={20} />
+          </TouchableOpacity>
+        </View>
+      </View>
       <TouchableOpacity
-        style={styles.timeBox}
+        style={styles.timeBox1}
         onPress={() => setTimePickerVisible(true)}>
-        <Text style={styles.timeText}>{formatTime(startTime)}</Text>
+        <View>
+          <Text
+            style={{
+              fontSize: 10,
+              paddingBottom: 5,
+              color: '#0860FB',
+              fontFamily: theme.bold,
+            }}>
+            Start Time
+          </Text>
+
+          <Text style={styles.timeText}>{formatTime(startTime)}</Text>
+        </View>
+        <TouchableOpacity onPress={() => setTimePickerVisible(true)}>
+          <Feather name="chevron-down" color="#192C4E" size={20} />
+        </TouchableOpacity>
       </TouchableOpacity>
 
       <DateTimePickerModal
@@ -116,11 +289,32 @@ const BookAppointmentScreen = ({navigation, route}) => {
         <Text style={styles.label}>Duration</Text>
         <View style={styles.durationControl}>
           <TouchableOpacity
-            onPress={() => setDuration(Math.max(1, duration - 1))}>
+            onPress={() => setDuration(Math.max(1, duration - 1))}
+            style={{
+              width: 22,
+              height: 22,
+              borderWidth: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 17,
+              borderColor: '#0860FB1A',
+              backgroundColor: '#E0E9F9',
+            }}>
             <Text style={styles.durationBtn}>-</Text>
           </TouchableOpacity>
           <Text style={styles.durationText}>{duration} hr</Text>
-          <TouchableOpacity onPress={() => setDuration(duration + 1)}>
+          <TouchableOpacity
+            style={{
+              width: 22,
+              height: 22,
+              borderWidth: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: 17,
+              borderColor: '#0860FB1A',
+              backgroundColor: '#E0E9F9',
+            }}
+            onPress={() => setDuration(duration + 1)}>
             <Text style={styles.durationBtn}>+</Text>
           </TouchableOpacity>
         </View>
@@ -128,7 +322,16 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
       {/* End Time */}
       <View style={styles.timeBox}>
-        <Text style={styles.timeText}>End Time: {getEndTime()}</Text>
+        <Text
+          style={{
+            fontSize: 10,
+            color: '#0860FB',
+            fontFamily: theme.bold,
+            paddingBottom: 5,
+          }}>
+          End Time
+        </Text>
+        <Text style={styles.timeText}>{getEndTime()}</Text>
       </View>
 
       {/* Courts */}
@@ -144,24 +347,27 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
       <Text style={styles.sectionTitle}>Select Court</Text>
       <View style={styles.courtGrid}>
-        {courtNumbers.map(court => {
-          const isSelected = selectedCourt === court.court_number;
-        console.log("🚀 ~ BookAppointmentScreen ~ isSelected:", isSelected)
-       
+        {courtNumbers.map((court, index) => {
+          const isSelected = selectedCourt === court.court_id;
+          console.log(
+            '🚀 ~ BookAppointmentScreen123 ~ isSelected:',
+            isSelected,
+          );
+
           return (
             <TouchableOpacity
-              key={court.court_number}
-              disabled={!court?.availability}
-              onPress={() => setSelectedCourt(court.court_number)}
+              key={index}
+              disabled={court?.is_booked}
+              onPress={() => setSelectedCourt(court.court_id)}
               style={[
                 styles.courtBox,
                 isSelected && styles.selectedCourt,
-                court?.availability && styles.disabledCourt,
+                court?.is_booked && styles.disabledCourt,
               ]}>
               <Text
                 style={[
                   styles.courtText,
-                  (isSelected || court?.availability) && {color: 'white'},
+                  (isSelected || court?.is_booked) && {color: 'white'},
                 ]}>
                 Court
               </Text>
@@ -171,11 +377,15 @@ const BookAppointmentScreen = ({navigation, route}) => {
             </TouchableOpacity>
           );
         })}
-          
-         
       </View>
-      <View style={{flex:1,alignItems:'center'}}>
-      <PrimaryButton title="Select Court" width={'70%'} height={60} />
+      <View style={{flex: 1, alignItems: 'center'}}>
+        <PrimaryButton
+          title="Select Court"
+          width={'70%'}
+          height={60}
+          onPress={onSubmit}
+          isLoading={isLoading1}
+        />
       </View>
       <View style={{height: 60}} />
     </ScrollView>
@@ -203,9 +413,8 @@ const styles = StyleSheet.create({
   },
   dateItem: {
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    width: 45,
+    // padding: 10,
+    width: 59,
   },
   selectedDate: {
     backgroundColor: '#95ACFF33',
@@ -213,6 +422,17 @@ const styles = StyleSheet.create({
   dayText: {fontSize: 12, color: '#777'},
   dateText: {fontSize: 14, fontWeight: '600', color: '#2D3A4A'},
   selectedDateText: {color: '#5577FF'},
+  timeBox1: {
+    padding: 15,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#EBEBEB',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   timeBox: {
     padding: 15,
     backgroundColor: '#F4F8FE',
@@ -231,27 +451,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+    borderWidth: 1,
+    height: 80,
+    borderRadius: 17,
+    borderColor: '#EBEBEB',
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
     color: '#2D3A4A',
+    paddingLeft: 5,
   },
   durationControl: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF3FF',
+    // backgroundColor: '#EFF3FF',
     paddingHorizontal: 10,
     borderRadius: 10,
   },
   durationBtn: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
+    color: '#0860FB',
   },
   durationText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: theme.futuraMedium,
     paddingHorizontal: 10,
   },
   courtGrid: {
@@ -282,6 +508,19 @@ const styles = StyleSheet.create({
     fontFamily: theme.medium,
     color: '#2D3A4A',
     textAlign: 'center',
+  },
+  selectDateStyle: {
+    width: 38,
+    height: 61,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 17,
+    backgroundColor: '#ffffff',
+    marginTop: 10,
+  },
+  enabled: {
+    borderColor: '#0860FB',
   },
 });
 
