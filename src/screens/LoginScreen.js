@@ -87,6 +87,7 @@ const LoginScreen = ({navigation}) => {
             });
           }
         } catch (error) {
+          console.log("🚀 ~ onRegister ~ error:", error)
           setIsLoading(false);
           if (error?.response && error?.response.status === 400) {
             console.log('response=======12>',error.response.data.errors);

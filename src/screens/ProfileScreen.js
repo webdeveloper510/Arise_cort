@@ -13,7 +13,10 @@ import Colors from '../constant/Colors';
 import theme from '../constant/theme';
 import CountryPicker from '../components/CountryPicker';
 import PrimaryButton from '../components/PrimaryButton';
+import { useSelector } from 'react-redux';
 const ProfileScreen = () => {
+  const {user} = useSelector((state)=> state.userData)
+  console.log("🚀 ~ ProfileScreen ~ data:", user)
   const [callingCode, setCallingCode] = useState('1');
   const [withCountryNameButton] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -37,23 +40,29 @@ const ProfileScreen = () => {
     <ScrollView
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled">
-
+        <View style={{width:'100%',alignItems:'center',marginVertical:20}}>
+          <Image
+          source={require('../assets/profile.png')}
+          style={{width:100,height:100}}
+          resizeMode='contain'
+          />
+        </View>
       <CommonInput
         label="First Name*"
-        // value={password}
+        value={user.first_name}
         // onChangeText={setPassword}
         placeholder="Enter here..."
       />
 
       <CommonInput
         label="Last Name*"
-        // value={password}
+        value={user.last_name}
         // onChangeText={setPassword}
         placeholder="Last Name*"
       />
       <CommonInput
         label="Email Address*"
-        // value={password}
+        value={user.email}
         // onChangeText={setPassword}
         placeholder="dummy221email.@gmail.com"
       />
@@ -63,11 +72,11 @@ const ProfileScreen = () => {
           <TextInput
             style={styles.phoneInput}
             placeholder="Phone Number"
-            value={phone}
+            value={user.phone}
             keyboardType="phone-pad"
             onChangeText={setPhone}
           />
-          <View style={styles.countryCodeBox}>
+          {/* <View style={styles.countryCodeBox}>
             <TouchableOpacity
               style={styles.contryCodePicker}
               onPress={() => setModalVisible(true)}>
@@ -75,11 +84,11 @@ const ProfileScreen = () => {
 
               <Text style={styles.countryCode}>+{countryCode}</Text>
             </TouchableOpacity>
-            {/* <Text>🇺🇸 +1</Text> */}
-          </View>
+       
+          </View> */}
         </View>
       </View>
-      <View style={styles.container1}>
+      {/* <View style={styles.container1}>
         <Text style={styles.label}>Message*</Text>
         <TextInput
           style={[styles.input, styles.messageBox]}
@@ -90,13 +99,13 @@ const ProfileScreen = () => {
           value={form.message}
           onChangeText={text => handleChange('message', text)}
         />
-      </View>
-      <PrimaryButton
+      </View> */}
+      {/* <PrimaryButton
         title="SEND MESSAGE"
         width={'100%'}
         height={60}
         onPress={() => navigation.navigate('MainStack')}
-      />
+      /> */}
 
       <CountryPicker
         modalVisible={modalVisible}

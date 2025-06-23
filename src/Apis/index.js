@@ -55,8 +55,9 @@ export const getStipePublishKey = async () => {
 export const SignInApi = async (data) => {
   try {
     const response = await axios.post('login/', data);
+    console.log("🚀 ~ SignInApi ~ response:", response)
     const token = response.data.data
-    console.log("🚀 ~ SignInApi ~ response:", token.access_token)
+    if(token?.access_token){
     await AsyncStorage.setItem('TOKEN', token.access_token);
     authApi = axios.create({
       baseURL: API_URL,
@@ -64,6 +65,7 @@ export const SignInApi = async (data) => {
         Authorization: `Bearer ${token.access_token}`,
       },
     });
+  }
     return response.data;
   } catch (error) {
     throw error;
@@ -178,7 +180,7 @@ export const courtAvailability = async data => {
 
 export const payDepositcustomer = async data => {
   try {
-    const response = await authApi.post('/customer/cart/payDeposit', data);
+    const response = await authApi.post('create-checkout-session/', data);
 
     return response.data;
   } catch (error) {
@@ -187,7 +189,7 @@ export const payDepositcustomer = async data => {
 };
 export const confirmDeposit = async data => {
   try {
-    const response = await authApi.post('/customer/cart/confirmDeposit', data);
+    const response = await authApi.post('payment-success/', data);
 
     return response.data;
   } catch (error) {

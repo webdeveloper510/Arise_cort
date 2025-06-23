@@ -72,7 +72,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
   const getCourtData = async () => {
     try {
       setIsLoading(true);
-      let res = await getCourtById(16);
+      let res = await getCourtById(15);
       setCourtsNumber(res.courts);
       // console.log('🚀 ~ getCourtData ~ 123res:', res);
       setIsLoading(false);
@@ -88,7 +88,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
       end.setHours(end.getHours() + duration);
 
       let body = {
-        location_id: 16,
+        location_id: id,
         date: selectedDate,
         start_time: moment(startTime).format('HH:mm:ss'),
         end_time: moment(end).format('HH:mm:ss'),
@@ -123,7 +123,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
       console.log('🚀 ~ onSubmit ~ body:', body);
       const res = await courtBooking(body);
       console.log('🚀 ~ onSubmit ~ res:', res);
-      navigation.navigate('Checkout')
+      navigation.navigate('Checkout',{data:res})
       setIsLoading1(false);
     } catch (error) {
       setIsLoading1(false);
