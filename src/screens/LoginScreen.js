@@ -24,7 +24,7 @@ const {width, height} = Dimensions.get('window');
 
 const LoginScreen = ({navigation}) => {
     const dispatch = useDispatch();
-  const [selectedTab, setSelectedTab] = useState('phone');
+  const [selectedTab, setSelectedTab] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
@@ -104,7 +104,7 @@ const LoginScreen = ({navigation}) => {
     };
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <BackButton navigation={navigation} />
 
@@ -114,11 +114,11 @@ const LoginScreen = ({navigation}) => {
             resizeMode="contain"
           />
           <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Welcome Back To The App</Text>
+          <Text style={styles.subtitle}>Welcome back to the app</Text>
 
           {/* Tabs */}
           <View style={styles.tabContainer}>
-            <View>
+            <View style={{alignItems:'center',justifyContent:'center'}}>
               <TouchableOpacity onPress={() => setSelectedTab('email')}>
                 <Text
                   style={[
@@ -135,11 +135,12 @@ const LoginScreen = ({navigation}) => {
                     width: 25,
                     backgroundColor: Colors.primary,
                     borderRadius: 10,
-                    alignSelf: 'center',
+                    // alignSelf: 'center',
                   }}
                 />
               )}
             </View>
+            <View style={{width:20}}/>
             <View>
               <TouchableOpacity onPress={() => setSelectedTab('phone')}>
                 <Text
@@ -168,7 +169,7 @@ const LoginScreen = ({navigation}) => {
           {selectedTab === 'email' && (
             <>
               <CommonInput
-                label="Email*"
+                label="Email address*"
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Enter your email"
@@ -198,6 +199,7 @@ const LoginScreen = ({navigation}) => {
                     />
 
                     <Text style={styles.countryCode}>+{countryCode}</Text>
+                  <Image source={require('../assets/drop.png')} style={{width:10,height:10}} resizeMode='contain'/>
                   </TouchableOpacity>
                   {/* <Text>🇺🇸 +1</Text> */}
                 </View>
@@ -209,7 +211,7 @@ const LoginScreen = ({navigation}) => {
             label="Password*"
             value={password}
             onChangeText={setPassword}
-            placeholder="********"
+            placeholder="* * * * * * * *"
             secureTextEntry={hidePassword}
             rightIcon={
               <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
@@ -269,7 +271,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: '#182B4D',
-    marginTop: 30,
     fontFamily: theme.bold,
   },
   subtitle: {
@@ -283,7 +284,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tab: {
-    marginRight: 20,
+    // marginRight: 20,
     fontSize: 18,
     fontWeight: '600',
     color: '#888',
@@ -308,6 +309,7 @@ const styles = StyleSheet.create({
   phoneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    position:'relative'
   },
   countryCodeBox: {
     // paddingHorizontal: 12,
@@ -316,6 +318,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: '#D9D9D9',
     height: 30,
+    position:'absolute',
+    right:10,
+    top:-9
   },
   phoneInput: {
     width: '75%',
@@ -324,7 +329,7 @@ const styles = StyleSheet.create({
     // paddingTop:10,
     // paddingVertical: 12,
     fontSize: 12,
-    color: '#000',
+    color:Colors.secondary,
     height: 35,
     backgroundColor: '#fff',
   },
@@ -362,9 +367,9 @@ const styles = StyleSheet.create({
     fontFamily: theme.bold,
   },
   image: {
-    width: width * 0.9,
-    height: height * 0.45,
-    alignSelf: 'center',
+    width: width * 0.7,
+    height: height * 0.35,
+    alignSelf: 'flex-end',
   },
   contryCodePicker: {
     flexDirection: 'row',
@@ -383,6 +388,7 @@ const styles = StyleSheet.create({
     color: theme.black,
     fontSize: 12,
     fontFamily: theme.futuraBold,
+    paddingRight:2
   },
   container1: {
     marginBottom: 16,

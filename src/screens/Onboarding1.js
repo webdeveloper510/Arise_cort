@@ -19,7 +19,7 @@ const Onboarding1 = ({ navigation }) => {
       </View>
 
       <Image
-        source={require('../assets/onbording1.png')}
+        source={require('../assets/onbording11.png')}
         style={styles.image}
         resizeMode="contain"
       />

@@ -20,6 +20,7 @@ const CommonInput = ({
         <TextInput
           style={styles.input}
           placeholder={placeholder}
+          placeholderTextColor={"#707C90"}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
@@ -54,11 +55,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary,
     // marginBottom: 4,
-    fontWeight: '600',
+    // fontWeight: '600',
     textAlign:'left',
     paddingLeft:15,
     paddingTop:10,
-    fontFamily:theme.medium
+    fontFamily:theme.bold
   },
   inputWrapper: {
     backgroundColor: '#fff',
@@ -70,12 +71,12 @@ const styles = StyleSheet.create({
   input: {
     width:'91%',
     // flex: 1,
-    paddingLeft:15,
+    paddingLeft:13,
     // paddingTop:10,
     // paddingVertical: 12,
-    fontSize: 12,
-    color: '#000',
-    height:37
+    fontSize: 15,
+    color:Colors.secondary,
+    height:37,
   },
 });
 

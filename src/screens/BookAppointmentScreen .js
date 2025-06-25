@@ -93,21 +93,23 @@ const BookAppointmentScreen = ({navigation, route}) => {
         start_time: moment(startTime).format('HH:mm:ss'),
         end_time: moment(end).format('HH:mm:ss'),
       };
-      console.log("🚀 ~ getCourts ~ body:", body)
-    
-      let res = await courtAvailability(body);
-      console.log("🚀 ~ getCourts ~ res:", res)
-      setCourtsNumber(res.courts);
+      console.log('🚀 ~ getCourts ~ body:', body);
 
+      let res = await courtAvailability(body);
+      console.log('🚀 ~ getCourts ~ res:', res);
+      setCourtsNumber(res.courts);
     } catch (error) {
       console.log('🚀 ~ getCourts ###############~ error:', error);
     }
   };
 
-  const formatDuration = (duration) => {
-  const dur = moment.duration(duration, 'hours');
-  return `${dur.hours()}:${dur.minutes().toString().padStart(2, '0')}:${dur.seconds().toString().padStart(2, '0')}`;
-};
+  const formatDuration = duration => {
+    const dur = moment.duration(duration, 'hours');
+    return `${dur.hours()}:${dur.minutes().toString().padStart(2, '0')}:${dur
+      .seconds()
+      .toString()
+      .padStart(2, '0')}`;
+  };
   const onSubmit = async () => {
     try {
       setIsLoading1(true);
@@ -123,13 +125,54 @@ const BookAppointmentScreen = ({navigation, route}) => {
       console.log('🚀 ~ onSubmit ~ body:', body);
       const res = await courtBooking(body);
       console.log('🚀 ~ onSubmit ~ res:', res);
-      navigation.navigate('Checkout',{data:res})
+      navigation.navigate('Checkout', {data: res});
       setIsLoading1(false);
     } catch (error) {
       setIsLoading1(false);
       console.log('🚀 ~ onSubmit ~ error#########:', error.response);
     }
   };
+
+  const markedDates = useMemo(() => {
+    const marks = {};
+    for (let i = 0; i < 7; i++) {
+      const date = moment().add(i, 'days').format('YYYY-MM-DD');
+      marks[date] = {
+        disabled: false,
+        disableTouchEvent: false,
+        selected: selectedDate === date,
+        selectedColor: selectedDate === date ? '#0860FB' : undefined,
+      };
+    }
+
+    // Disable all other dates
+    return new Proxy(marks, {
+      get: (target, prop) => {
+        if (prop in target) {
+          return target[prop];
+        }
+        return {
+          disabled: true,
+          disableTouchEvent: true,
+        };
+      },
+    });
+  }, [selectedDate]);
+
+const weekDates = useMemo(() => {
+    const startOfWeek = moment(selectedDate).startOf('week'); // Always Sunday
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = moment(startOfWeek).add(i, 'days');
+      days.push({
+        dateString: date.format('YYYY-MM-DD'),
+        day: date.date(),
+        dayName: date.format('ddd'),
+      });
+    }
+    return days;
+  }, [selectedDate]);
+
   const renderDateItem = ({item}) => {
     const isEnabled = availableDates.includes(item);
     console.log('🚀 ~ renderDateItem ~ isEnabled:', isEnabled);
@@ -164,9 +207,47 @@ const BookAppointmentScreen = ({navigation, route}) => {
       </TouchableOpacity>
     );
   };
+
+   const renderItem = ({ item }) => {
+  const isPastDate = moment(item.dateString).isBefore(moment(), 'day');
+
+  return (
+    <View style={{alignItems:'center'}}>
+
+      <Text style={[styles.dayName, isPastDate && styles.disabledText]}>
+        {item.dayName}
+      </Text>
+      <TouchableOpacity
+        style={[
+        styles.dayContainer,
+        item.dateString === selectedDate && styles.selectedDayContainer,
+        isPastDate && styles.disabledDayContainer,
+      ]}
+      onPress={() => {
+        if (!isPastDate) setSelectedDate(item.dateString);
+      }}
+      disabled={isPastDate}
+      >
+      <Text
+        style={[
+          styles.dayNumber,
+          item.dateString === selectedDate && styles.selectedDayNumber,
+          isPastDate && styles.disabledText,
+        ]}
+      >
+        {item.day}
+      </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
   return (
     <ScrollView style={styles.container}>
-      <CommonHeader title="Checkout" onBack={() => navigation.goBack()} />
+      <CommonHeader
+        title="Book Appointment"
+        onBack={() => navigation.goBack()}
+      />
 
       {/* Date Picker */}
       <View
@@ -187,27 +268,37 @@ const BookAppointmentScreen = ({navigation, route}) => {
       </View>
       {showCalendar && (
         <Calendar
+          markedDates={markedDates}
           onDayPress={day => {
-            handleCalendarSelect(day);
-            setShowCalendar(false);
+            const selected = day.dateString;
+            if (!markedDates[selected]?.disabled) {
+              setSelectedDate(selected);
+            }
           }}
-          markedDates={{
-            [selectedDate]: {
-              selected: true,
-              selectedColor: 'blue',
-            },
+          disableAllTouchEventsForDisabledDays={true}
+          theme={{
+            selectedDayBackgroundColor: '#0860FB',
+            selectedDayTextColor: '#ffffff',
           }}
         />
       )}
 
       {selectedDate && (
-        <FlatList
-          data={availableDates}
-          horizontal
-          keyExtractor={item => item}
-          renderItem={renderDateItem}
-          contentContainerStyle={{marginTop: 20}}
-        />
+          <FlatList
+        data={weekDates}
+        horizontal
+        keyExtractor={(item) => item.dateString}
+        renderItem={renderItem}
+        contentContainerStyle={styles.weekList}
+        showsHorizontalScrollIndicator={false}
+      />
+        // <FlatList
+        //   data={availableDates}
+        //   horizontal
+        //   keyExtractor={item => item}
+        //   renderItem={renderDateItem}
+        //   contentContainerStyle={{marginTop: 20}}
+        // />
       )}
       {/* <View style={styles.dateRow}>
         {dates.map((date, i) => (
@@ -522,6 +613,47 @@ const styles = StyleSheet.create({
   enabled: {
     borderColor: '#0860FB',
   },
+  /// date pickere=====
+    weekList: {
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+  },
+  dayContainer: {
+    width: 39,
+    height: 70,
+    borderRadius: 15,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    // marginHorizontal: 5,
+    borderWidth:1,
+    borderColor:"#D8E2FE"
+  },
+  selectedDayContainer: {
+    borderColor: '#007aff',
+    borderWidth: 2,
+    backgroundColor: '#ffffff',
+  },
+  dayName: {
+    fontSize: 12,
+    color: '#333',
+  },
+  dayNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  selectedDayNumber: {
+    color: '#007aff',
+  },
+  disabledDayContainer: {
+  backgroundColor: '#e0e0e0',
+  borderColor: '#ccc',
+},
+
+disabledText: {
+  color: '#999',
+},
 });
 
 export default BookAppointmentScreen;

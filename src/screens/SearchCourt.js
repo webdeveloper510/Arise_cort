@@ -69,6 +69,19 @@ const SearchCourtScreen = ({navigation}) => {
     }
   };
 
+
+   const getAllData2 = async () => {
+    try {
+      setLoading(true);
+      const res = await getAllCourts({address:query});
+      console.log('🚀 ~ getAllDAta ~ res:123', res.results);
+      setMockData(res.results);
+      setLoading(false);
+    } catch (error) {
+      console.log('🚀 ~ getAllDAta ~ error:', error);
+      setLoading(false);
+    }
+  };
   const SkeletonLoader = () => {
     return (
       <View style={{padding: 16}}>
@@ -78,7 +91,7 @@ const SearchCourtScreen = ({navigation}) => {
       </View>
     );
   };
-  console.log('###########==123==>', mockData);
+  
   return (
     <View style={styles.container}>
       <CommonHeader title="Search Court" onBack={() => navigation.goBack()} />
@@ -92,8 +105,9 @@ const SearchCourtScreen = ({navigation}) => {
         />
         <TouchableOpacity
           onPress={() => {
-            setSearched(true);
+            // setSearched(true);
             Keyboard.dismiss();
+            getAllData2();
           }}
           style={styles.searchBtn}>
           <Feather name="search" color="#ffffff" size={20} />
@@ -123,7 +137,7 @@ const SearchCourtScreen = ({navigation}) => {
         />
       )}
 
-      {!loading && displayedData.length > 0 && (
+      {!loading > 0 && (
         <TouchableOpacity style={styles.continueBtn} onPress={()=> navigation.navigate('BookAppointmentScreen',{id:selectedItem?.id})}>
           <Text style={styles.continueText}>CONTINUE</Text>
         </TouchableOpacity>

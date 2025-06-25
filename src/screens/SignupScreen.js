@@ -34,7 +34,7 @@ const SignupScreen = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [flag, setFlag] = useState(require('../assets/flags/nl.png'));
-  const [countryName, setCountryName] = useState('Netherlands');
+  const [countryName, setCountryName] = useState('NL');
   const [countryCode, setCountryCode] = useState('31');
   const [selectedType, setSelectedType] = useState('2');
   const [visible, setVisible] = useState(false);
@@ -71,6 +71,12 @@ const SignupScreen = ({navigation}) => {
     if (!phone.trim()) {
       tempErrors.phone = 'Phone number is required';
       valid = false;
+    } else if (phone.length < 5) {
+      tempErrors.phone = 'Phone number must be at least 5 digits';
+      valid = false;
+    } else if (phone.length > 15) {
+      tempErrors.phone = 'Phone number must be no more than 15 digits';
+      valid = false;
     }
 
     if (!password.trim()) {
@@ -97,7 +103,7 @@ const SignupScreen = ({navigation}) => {
     setErrors(tempErrors);
     return valid;
   };
- 
+
   const onRegister = async () => {
     if (validate()) {
       try {
@@ -112,27 +118,36 @@ const SignupScreen = ({navigation}) => {
           confirm_password: confirmPassword,
           user_type: selectedType,
         };
+        console.log('🚀 ~ onRegister ~ data:', data);
         const res = await SignUpApi(data);
+        console.log('🚀 ~ onRegister ~ res:', res);
         if (res.status == '201') {
           setIsLoading(false);
           showMessage({
             message: res.message,
             type: 'success',
           });
-          navigation.navigate('OTPVerify',{email:email})
+          navigation.goBack();
+          // navigation.navigate('OTPVerify',{email:email})
+        } else {
+          setIsLoading(false);
+          showMessage({
+            message: res.message,
+            type: 'danger',
+          });
         }
       } catch (error) {
+        console.log('response=======>', error);
         setIsLoading(false);
         if (error?.response && error?.response.status === 400) {
           const errorMsg = error?.response?.data.message;
-          console.log('response=======>',errorMsg);
 
           if (errorMsg?.email) {
-            showMessage({message:errorMsg.email,type:'danger'})
+            showMessage({message: errorMsg.email, type: 'danger'});
           }
 
           if (errorMsg?.phone) {
-            showMessage({message:errorMsg.phone,type:'danger'})
+            showMessage({message: errorMsg.phone, type: 'danger'});
           }
         }
       }
@@ -141,12 +156,12 @@ const SignupScreen = ({navigation}) => {
       console.log('❌ Validation Failed');
     }
   };
- const getTypeByCode = code => {
+  const getTypeByCode = code => {
     const item = userTypes.find(entry => entry.code === code);
     return item ? item.type : null;
   };
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         <BackButton navigation={navigation} />
         <Text style={styles.testStyle}>Register</Text>
@@ -193,6 +208,11 @@ const SignupScreen = ({navigation}) => {
                 <Image source={flag} style={styles.flag} resizeMode="cover" />
 
                 <Text style={styles.countryCode}>+{countryCode}</Text>
+                <Image
+                  source={require('../assets/drop.png')}
+                  style={{width: 10, height: 10}}
+                  resizeMode="contain"
+                />
               </TouchableOpacity>
               {/* <Text>🇺🇸 +1</Text> */}
             </View>
@@ -261,6 +281,7 @@ const SignupScreen = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonStyle}>Back to Login</Text>
         </TouchableOpacity>
+        <View style={{height: 80}} />
       </View>
       <CountryPicker
         modalVisible={modalVisible}
@@ -373,6 +394,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: '#D9D9D9',
     height: 30,
+    position: 'absolute',
+    right: 10,
+    top: -9,
   },
   phoneInput: {
     width: '75%',
@@ -402,6 +426,7 @@ const styles = StyleSheet.create({
     color: theme.black,
     fontSize: 12,
     fontFamily: theme.futuraBold,
+    paddingRight: 3,
   },
   value: {
     fontSize: 16,

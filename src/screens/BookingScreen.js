@@ -82,7 +82,8 @@ const MyBookingsScreen = ({navigation}) => {
     try {
       setIsLoading(true);
       let res = await getAllBookinglist();
-      console.log('🚀 ~ getlistData ~ res:1222@@@3', res);
+      console.log('🚀 ~ getlistData ~ res:1222@@@3', res.results);
+      // setBookings(res.results)
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);

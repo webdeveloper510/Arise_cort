@@ -127,9 +127,9 @@ export const getCourtById = async (page) => {
     throw error;
   }
 };
-export const getAllCourts = async () => {
+export const getAllCourts = async (query) => {
   try {
-    const response = await axios.get('locations/');
+    const response = await axios.get('locations/',{params: query});
     return response.data;
   } catch (error) {
     throw error;

@@ -7,6 +7,7 @@ import {
   Dimensions,
   TouchableOpacity,
   TextInput,
+  ScrollView
 } from 'react-native';
 import theme from '../constant/theme';
 import Colors from '../constant/Colors';
@@ -64,6 +65,7 @@ const ForgotScreen = ({navigation, route}) => {
 };
 
   return (
+    <ScrollView style={{flex:1,backgroundColor:Colors.background}}>
     <View style={styles.container}>
       <BackButton navigation={navigation} />
 
@@ -81,7 +83,7 @@ const ForgotScreen = ({navigation, route}) => {
       </Text>
       {type == 'email' ? (
         <CommonInput
-          label="Email*"
+          label="Email Address*"
           value={email}
           onChangeText={setEmail}
           placeholder="Enter your email"
@@ -135,6 +137,7 @@ const ForgotScreen = ({navigation, route}) => {
         }}
       />
     </View>
+    </ScrollView>
   );
 };
 
