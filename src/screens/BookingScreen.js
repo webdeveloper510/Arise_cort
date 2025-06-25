@@ -14,6 +14,7 @@ import theme from '../constant/theme';
 import {getAllBookinglist} from '../Apis';
 import Colors from '../constant/Colors';
 import {showMessage} from 'react-native-flash-message';
+import moment from 'moment';
 const bookings = [
   {
     id: '1',
@@ -82,8 +83,11 @@ const MyBookingsScreen = ({navigation}) => {
     try {
       setIsLoading(true);
       let res = await getAllBookinglist();
-      console.log('🚀 ~ getlistData ~ res:1222@@@3', res.results);
-      // setBookings(res.results)
+      console.log(
+        '🚀 ~ getlistData ~ res:1222@@@3',
+        res.results[0].court.location.description,
+      );
+      setBookings(res.results);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -100,23 +104,26 @@ const MyBookingsScreen = ({navigation}) => {
         <View style={styles.row}>
           <View style={{flex: 1}}>
             <Text style={styles.title} numberOfLines={1}>
-              {item.title}
+              {item.court.location.description}
             </Text>
             <View
               style={{flexDirection: 'row', justifyContent: 'space-between'}}>
               <View style={[styles.infoRow1]}>
                 <Text style={styles.label}>Date</Text>
-                <Text style={styles.value}>{item.date}</Text>
+                <Text style={styles.value}>
+                  {moment(item.booking_date).format('MMMM D, YYYY')}
+                </Text>
               </View>
               {/* <View style={{width:1,height:10,backgroundColor:'#4F658C'}}/> */}
               <View style={styles.infoRow}>
                 <Text style={styles.label}>Booking ID</Text>
-                <Text style={styles.value}>{item.bookingId}</Text>
+                <Text style={styles.value}>{item.booking_id}</Text>
               </View>
             </View>
           </View>
-          <TouchableOpacity onPress={()=> navigation.navigate('BookingDetail')}>
-          <Feather name="chevron-right" size={20} color="#0066FF" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('BookingDetail',{data:item})}>
+            <Feather name="chevron-right" size={20} color="#0066FF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -130,11 +137,16 @@ const MyBookingsScreen = ({navigation}) => {
         <ActivityIndicator color={Colors.primary} size={'small'} />
       ) : (
         <FlatList
-          data={bookings}
+          data={Bookings}
           renderItem={({item}) => <BookingCard item={item} />}
           keyExtractor={item => item.id}
           contentContainerStyle={{paddingBottom: 20}}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <Text style={{textAlign: 'center', marginTop: 20, color: '#999'}}>
+              No courts available
+            </Text>
+          }
         />
       )}
     </SafeAreaView>

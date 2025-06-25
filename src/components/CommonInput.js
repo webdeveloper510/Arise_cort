@@ -25,6 +25,7 @@ const CommonInput = ({
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
           editable={isEdit}
+          maxLength={30}
         />
         {rightIcon}
       </View>
@@ -35,7 +36,6 @@ const CommonInput = ({
 
 const styles = StyleSheet.create({
      container1: {
-    marginBottom: 16,
     borderWidth: 1,
     borderRadius: 12,
     backgroundColor: '#fff',

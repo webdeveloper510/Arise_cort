@@ -26,6 +26,7 @@ const SignupScreen = ({navigation}) => {
     {code: '3', type: 'Player'},
   ];
   const [hidePassword, setHidePassword] = useState(true);
+  const [hidePassword1, setHidePassword1] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -174,23 +175,24 @@ const SignupScreen = ({navigation}) => {
           onChangeText={setFirstName}
           placeholder="Enter here...."
         />
-        {errors.firstName && (
+        {errors.firstName ? (
           <Text style={styles.error}>{errors.firstName}</Text>
-        )}
+        ) :(<View style={{ height: 28 }} />)}
+        
         <CommonInput
           label="Last Name*"
           value={lastName}
           onChangeText={setLastName}
           placeholder="Enter here...."
         />
-        {errors.lastName && <Text style={styles.error}>{errors.lastName}</Text>}
+        {errors.lastName ? <Text style={styles.error}>{errors.lastName}</Text> : <View style={{ height: 28 }} />}
         <CommonInput
           label="Email Address*"
           value={email}
           onChangeText={setEmail}
           placeholder="Enter your email"
         />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        {errors.email ? <Text style={styles.error}>{errors.email}</Text> :<View style={{ height: 28 }} />}
         <View style={styles.container1}>
           <Text style={styles.label}>Phone Number*</Text>
           <View style={styles.phoneContainer}>
@@ -218,7 +220,7 @@ const SignupScreen = ({navigation}) => {
             </View>
           </View>
         </View>
-        {errors.phone && <Text style={styles.error}>{errors.phone}</Text>}
+        {errors.phone ? <Text style={styles.error}>{errors.phone}</Text>: <View style={{ height: 28 }} />}
         <CommonInput
           label="Password*"
           value={password}
@@ -228,31 +230,31 @@ const SignupScreen = ({navigation}) => {
           rightIcon={
             <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
               <Image
-                source={require('../assets/eye.png')}
+                source={hidePassword ? require('../assets/eye.png') : require('../assets/visible.png')}
                 style={{width: 17, height: 16, paddingRight: 10}}
               />
             </TouchableOpacity>
           }
         />
-        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        {errors.password ? <Text style={styles.error}>{errors.password}</Text>:<View style={{ height: 28 }} />}
         <CommonInput
           label="Confirm Password*"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           placeholder="********"
-          secureTextEntry={hidePassword}
+          secureTextEntry={hidePassword1}
           rightIcon={
-            <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
+            <TouchableOpacity onPress={() => setHidePassword1(!hidePassword1)}>
               <Image
-                source={require('../assets/eye.png')}
+                source={hidePassword1 ? require('../assets/eye.png') : require('../assets/visible.png')}
                 style={{width: 17, height: 16, paddingRight: 10}}
               />
             </TouchableOpacity>
           }
         />
-        {errors.confirmPassword && (
+        {errors.confirmPassword ? (
           <Text style={styles.error}>{errors.confirmPassword}</Text>
-        )}
+        ):<View style={{ height: 28 }} />}
         <CommonInput
           label="User Type*"
           //   value={password}
@@ -270,7 +272,7 @@ const SignupScreen = ({navigation}) => {
             </TouchableOpacity>
           }
         />
-        {errors.userType && <Text style={styles.error}>{errors.userType}</Text>}
+        {errors.userType ? <Text style={styles.error}>{errors.userType}</Text> : <View style={{ height: 28 }} />}
         <PrimaryButton
           title="Register Now"
           width={'100%'}
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.bold,
   },
   container1: {
-    marginBottom: 16,
+    // marginBottom: 16,
     borderWidth: 1,
     borderRadius: 12,
     backgroundColor: '#fff',
@@ -455,6 +457,7 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     paddingLeft: 5,
-    paddingVertical: 10,
+   paddingBottom:20,
+   paddingTop:5
   },
 });

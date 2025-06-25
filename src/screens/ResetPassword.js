@@ -14,18 +14,32 @@ import BackButton from '../components/BackButton';
 import PrimaryButton from '../components/PrimaryButton';
 import CommonInput from '../components/CommonInput';
 import {ScrollView} from 'react-native-gesture-handler';
-import {ResetPasswordApi} from '../Apis'
+import {ResetPasswordApi} from '../Apis';
+import {showMessage} from 'react-native-flash-message';
 const {height, width} = Dimensions.get('window');
 
-const ResetPassword = ({navigation,route}) => {
+const ResetPassword = ({navigation, route}) => {
   const {email} = route?.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [password, setPassword] = useState('');
   const [hidePassword, setHidePassword] = useState(true);
-  const [confirm_password ,setconfirm_password] = useState('');
-  const [isLoading,setIsLoading] = useState(false);
+  const [hidePassword1, setHidePassword1] = useState(true);
+  const [confirm_password, setconfirm_password] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (password.length < 8) {
+      showMessage({
+        message: 'Your password must be at least 8 characters',
+        type: 'danger',
+      });
+      return;
+    }
+
+    if (password !== confirm_password) {
+      showMessage({message: 'Passwords do not match', type: 'danger'});
+      return;
+    }
     try {
       setIsLoading(true);
       let body = {
@@ -33,14 +47,22 @@ const ResetPassword = ({navigation,route}) => {
         new_password: password,
         confirm_password: confirm_password,
       };
-      console.log('🚀 ~ handleSubmit ~ body:', otp);
+      console.log('🚀 ~ handleSubmit ~ reset body:', body);
       const res = await ResetPasswordApi(body);
-      console.log('🚀 ~ handleSubmit ~ res:', res);
-      showMessage({message: res.message, type: 'success'});
-      // navigation.navigate('login')
-      setIsLoading(false);
+      console.log('🚀 ~ handleSubmit ~ reset res:', res);
+      if (res.code == '200') {
+        showMessage({message: res.message, type: 'success'});
+        setIsLoading(false);
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'Login'}],
+        });
+      } else {
+        showMessage({message: res.message, type: 'danger'});
+        setIsLoading(false);
+      }
     } catch (error) {
-      console.log('🚀 ~ handleSubmit ~ error:', error.response);
+      console.log('🚀 ~ handleSubmit ~ error:reset', error);
       setIsLoading(false);
       if (error?.response && error?.response.status === 400) {
         const errorMsg = error?.response.data.message;
@@ -74,27 +96,37 @@ const ResetPassword = ({navigation,route}) => {
           rightIcon={
             <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
               <Image
-                source={require('../assets/eye.png')}
+                source={
+                  hidePassword
+                    ? require('../assets/eye.png')
+                    : require('../assets/visible.png')
+                }
                 style={{width: 17, height: 16, paddingRight: 10}}
               />
             </TouchableOpacity>
           }
         />
+        <View style={{height: 28}} />
         <CommonInput
           label="Confirm Password*"
-          value={password}
-          onChangeText={setPassword}
+          value={confirm_password}
+          onChangeText={setconfirm_password}
           placeholder="********"
-          secureTextEntry={hidePassword}
+          secureTextEntry={hidePassword1}
           rightIcon={
-            <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
+            <TouchableOpacity onPress={() => setHidePassword1(!hidePassword1)}>
               <Image
-                source={require('../assets/eye.png')}
+                source={
+                  hidePassword1
+                    ? require('../assets/eye.png')
+                    : require('../assets/visible.png')
+                }
                 style={{width: 17, height: 16, paddingRight: 10}}
               />
             </TouchableOpacity>
           }
         />
+        <View style={{height: 28}} />
         <PrimaryButton
           title="Set Password"
           width={'100%'}
@@ -102,7 +134,9 @@ const ResetPassword = ({navigation,route}) => {
           onPress={handleSubmit}
           isLoading={isLoading}
         />
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Login')}
+          style={{marginBottom: 12}}>
           <Text style={styles.backToLogin}>Back to Login</Text>
         </TouchableOpacity>
       </View>

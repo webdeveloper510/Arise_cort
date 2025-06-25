@@ -13,10 +13,13 @@ import Colors from '../constant/Colors';
 import theme from '../constant/theme';
 import CountryPicker from '../components/CountryPicker';
 import PrimaryButton from '../components/PrimaryButton';
-import { useSelector } from 'react-redux';
-const ProfileScreen = () => {
-  const {user} = useSelector((state)=> state.userData)
-  console.log("🚀 ~ ProfileScreen ~ data:", user)
+import {useSelector, useDispatch} from 'react-redux';
+import {SaveUserInfo} from '../redux/userData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+const ProfileScreen = ({navigation}) => {
+  const {user} = useSelector(state => state.userData);
+  const dispatch = useDispatch();
+  console.log('🚀 ~ ProfileScreen ~ data:', user);
   const [callingCode, setCallingCode] = useState('1');
   const [withCountryNameButton] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -36,43 +39,60 @@ const ProfileScreen = () => {
     setForm({...form, [key]: value});
   };
 
+const handleButton = async () => {
+  try {
+    await AsyncStorage.clear();
+    dispatch(SaveUserInfo(null));
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  } catch (error) {
+    console.log('Logout error:', error);
+    showMessage({ message: 'Logout failed. Please try again.', type: 'danger' });
+  }
+};
+
+
   return (
     <ScrollView
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled">
-        <View style={{width:'100%',alignItems:'center',marginVertical:20}}>
-          <Image
+      <View style={{width: '100%', alignItems: 'center', marginVertical: 20}}>
+        <Image
           source={require('../assets/profile.png')}
-          style={{width:100,height:100}}
-          resizeMode='contain'
-          />
-        </View>
+          style={{width: 100, height: 100}}
+          resizeMode="contain"
+        />
+      </View>
       <CommonInput
         label="First Name*"
-        value={user.first_name}
+        value={user?.first_name}
         // onChangeText={setPassword}
         placeholder="Enter here..."
       />
-
+      <View style={{height: 28}} />
       <CommonInput
         label="Last Name*"
-        value={user.last_name}
+        value={user?.last_name}
         // onChangeText={setPassword}
         placeholder="Last Name*"
       />
+      <View style={{height: 28}} />
       <CommonInput
         label="Email Address*"
-        value={user.email}
+        value={user?.email}
         // onChangeText={setPassword}
         placeholder="dummy221email.@gmail.com"
       />
+      <View style={{height: 28}} />
       <View style={styles.container1}>
         <Text style={styles.label}>Phone Number*</Text>
         <View style={styles.phoneContainer}>
           <TextInput
             style={styles.phoneInput}
             placeholder="Phone Number"
-            value={user.phone}
+            value={user?.phone}
             keyboardType="phone-pad"
             onChangeText={setPhone}
           />
@@ -88,6 +108,9 @@ const ProfileScreen = () => {
           </View> */}
         </View>
       </View>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleButton}>
+        <Text style={{color: 'red'}}>Log Out</Text>
+      </TouchableOpacity>
       {/* <View style={styles.container1}>
         <Text style={styles.label}>Message*</Text>
         <TextInput
@@ -231,5 +254,16 @@ const styles = StyleSheet.create({
     color: theme.black,
     fontSize: 12,
     fontFamily: theme.futuraBold,
+  },
+  logoutButton: {
+    width: '35%',
+    height: 40,
+    borderWidth: 1,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderColor: '#0860FB',
+    backgroundColor: '#ffffff',
   },
 });

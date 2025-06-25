@@ -176,7 +176,7 @@ const LoginScreen = ({navigation}) => {
               />
             </>
           )}
-          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+          {errors.email ? <Text style={styles.error}>{errors.email}</Text> : <View style={{ height: 28 }} />}
           {selectedTab === 'phone' && (
             <View style={styles.container1}>
               <Text style={styles.label}>Phone Number*</Text>
@@ -222,7 +222,7 @@ const LoginScreen = ({navigation}) => {
               </TouchableOpacity>
             }
           />
-       {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+       {errors.password ? <Text style={styles.error}>{errors.password}</Text> : <View style={{ height: 28 }} />}
           <TouchableOpacity
             onPress={() => navigation.navigate('ForgotPassword',{type:selectedTab})}>
             <Text style={styles.forgotText}>Forgot Password?</Text>
@@ -401,6 +401,7 @@ const styles = StyleSheet.create({
     error: {
     color: 'red',
     paddingLeft: 5,
-    paddingVertical: 10,
+    paddingBottom:20,
+    paddingTop:5
   },
 });

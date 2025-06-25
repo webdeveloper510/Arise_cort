@@ -7,13 +7,14 @@ import {
   Dimensions,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import theme from '../constant/theme';
 import Colors from '../constant/Colors';
 import BackButton from '../components/BackButton';
 import PrimaryButton from '../components/PrimaryButton';
 import CountryPicker from '../components/CountryPicker';
-import {EmailVerifyAPI} from '../Apis';
+import {EmailVerifyAPI,forgotPasswordApi} from '../Apis';
 import {showMessage} from 'react-native-flash-message';
 const {height, width} = Dimensions.get('window');
 
@@ -22,6 +23,7 @@ const OTPVerifyScreen = ({navigation, route}) => {
   console.log('🚀 ~ OTPVerifyScreen ~ route:', email);
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoading1, setIsLoading1] = useState(false);
   const inputRefs = useRef([]);
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -59,9 +61,15 @@ const OTPVerifyScreen = ({navigation, route}) => {
       console.log("🚀 ~ handleSubmit ~ body:", otp)
       const res = await EmailVerifyAPI(body);
       console.log('🚀 ~ handleSubmit ~ res:', res);
-      showMessage({message:res.message,type:"success"})
-      navigation.navigate('ResetPassword',{email:email})
       setIsLoading(false);
+      if(res.code == '400'){
+        showMessage({message:res.message,type:"danger"})
+      }else{
+
+        navigation.navigate('ResetPassword',{email:email})
+        showMessage({message:res.message,type:"success"})
+      }
+      
     } catch (error) {
       console.log('🚀 ~ handleSubmit ~ error:', error.response);
       setIsLoading(false);
@@ -69,6 +77,33 @@ const OTPVerifyScreen = ({navigation, route}) => {
         const errorMsg = error?.response.data.message;
         console.log('🚀 ~ handleSubmit ~ errorMsg:', errorMsg);
 
+        showMessage({message: errorMsg, type: 'danger'});
+      }
+    }
+  };
+
+   const ResendOtp = async () => {
+
+    try {
+      setIsLoading1(true);
+      let body = {
+        email: email
+      };
+      const res = await forgotPasswordApi(body);
+      console.log('🚀 ~ handleSubmit ~ res:', res);
+      if(res.code == '400'){
+        showMessage({message:res.message,type:'danger'})
+      setIsLoading1(false);
+      }else{
+        showMessage({message:res.message,type:'success'})
+        setIsLoading1(false);
+      }
+    } catch (error) {
+      console.log('🚀 ~ handleSubmit ~ error:', error.response);
+      setIsLoading1(false);
+      if (error?.response && error?.response.status === 400) {
+        const errorMsg = error?.response.data.message;
+        console.log('🚀 ~ handleSubmit ~ errorMsg:', errorMsg);
         showMessage({message: errorMsg, type: 'danger'});
       }
     }
@@ -107,8 +142,9 @@ const OTPVerifyScreen = ({navigation, route}) => {
           />
         ))}
       </View>
-      <TouchableOpacity>
-        <Text style={styles.resendText}>Resend OTP</Text>
+      <TouchableOpacity onPress={ResendOtp} style={{alignItems:'flex-start'}}>
+        {isLoading1 ? <ActivityIndicator size={"small"} color="#0860FB"/>:<Text style={styles.resendText}>Resend OTP</Text>}
+        
       </TouchableOpacity>
       <PrimaryButton
         title="Continue"

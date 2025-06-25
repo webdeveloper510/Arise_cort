@@ -16,6 +16,7 @@ import {getCourtById} from '../Apis';
 import {Calendar} from 'react-native-calendars';
 import {courtBooking, courtAvailability} from '../Apis';
 import moment from 'moment';
+import { showMessage } from 'react-native-flash-message';
 
 const durationOptions = [1, 2];
 
@@ -29,7 +30,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
     moment().format('YYYY-MM-DD'),
   );
   const [startTime, setStartTime] = useState(new Date());
-  const [duration, setDuration] = useState(1);
+  const [duration, setDuration] = useState(60);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +38,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
   const [courtNumbers, setCourtsNumber] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
+  console.log('🚀 ~ BookAppointmentScreen ~ startTime:', startTime);
   const handleTimeConfirm = date => {
     setStartTime(date);
     setTimePickerVisible(false);
@@ -49,8 +51,14 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
   const getEndTime = () => {
     const end = new Date(startTime);
-    end.setHours(end.getHours() + duration);
+    end.setMinutes(end.getMinutes() + duration);
     return formatTime(end);
+  };
+
+  const formatDuration = minutes => {
+    const hrs = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hrs}:${mins === 0 ? '00' : mins}`;
   };
   useEffect(() => {
     // getCourtData();
@@ -72,7 +80,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
   const getCourtData = async () => {
     try {
       setIsLoading(true);
-      let res = await getCourtById(15);
+      let res = await getCourtById(id);
       setCourtsNumber(res.courts);
       // console.log('🚀 ~ getCourtData ~ 123res:', res);
       setIsLoading(false);
@@ -103,18 +111,23 @@ const BookAppointmentScreen = ({navigation, route}) => {
     }
   };
 
-  const formatDuration = duration => {
-    const dur = moment.duration(duration, 'hours');
-    return `${dur.hours()}:${dur.minutes().toString().padStart(2, '0')}:${dur
-      .seconds()
-      .toString()
-      .padStart(2, '0')}`;
-  };
+  // const formatDuration = duration => {
+  //   const dur = moment.duration(duration, 'hours');
+  //   return `${dur.hours()}:${dur.minutes().toString().padStart(2, '0')}:${dur
+  //     .seconds()
+  //     .toString()
+  //     .padStart(2, '0')}`;
+  // };
   const onSubmit = async () => {
+      if (!selectedCourt) {
+      showMessage({message:"Please select court number!",type:'danger'})
+      return;
+    }
+
     try {
       setIsLoading1(true);
       const end = new Date(startTime);
-      end.setHours(end.getHours() + duration);
+      end.setMinutes(end.getMinutes() + duration);
       var body = {
         booking_date: selectedDate,
         start_time: moment(startTime).format('HH:mm:ss'),
@@ -159,7 +172,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
     });
   }, [selectedDate]);
 
-const weekDates = useMemo(() => {
+  const weekDates = useMemo(() => {
     const startOfWeek = moment(selectedDate).startOf('week'); // Always Sunday
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -173,74 +186,37 @@ const weekDates = useMemo(() => {
     return days;
   }, [selectedDate]);
 
-  const renderDateItem = ({item}) => {
-    const isEnabled = availableDates.includes(item);
-    console.log('🚀 ~ renderDateItem ~ isEnabled:', isEnabled);
-    const isSelected = item === selectedDate;
-    const isPastDate = moment(item).isBefore(moment(), 'day');
+  const renderItem = ({item, index}) => {
+    const isPastDate = moment(item.dateString).isBefore(moment(), 'day');
+
     return (
-      <TouchableOpacity
-        style={[
-          styles.dateItem,
-          isEnabled ? styles.enabled : styles.disabled,
-          isSelected && styles.selected,
-          isPastDate && {opacity: 0.5},
-        ]}
-        disabled={isPastDate}
-        onPress={() => setSelectedDate(item)}>
-        <Text style={styles.dayText}>
-          {moment(item).format('ddd')} {/* e.g., Mon, Tue */}
+      <View
+        style={{alignItems: 'center', marginHorizontal: index == 0 ? 0 : 5}}>
+        <Text style={[styles.dayName, isPastDate && styles.disabledText]}>
+          {item.dayName}
         </Text>
-        <View
+        <TouchableOpacity
           style={[
-            styles.selectDateStyle,
-            {borderColor: item === selectedDate ? '#0860FB' : '#D8E2FE'},
-          ]}>
+            styles.dayContainer,
+            item.dateString === selectedDate && styles.selectedDayContainer,
+            isPastDate && styles.disabledDayContainer,
+          ]}
+          onPress={() => {
+            if (!isPastDate) setSelectedDate(item.dateString);
+          }}
+          disabled={isPastDate}>
           <Text
             style={[
-              styles.dateText,
-              {color: item === selectedDate ? '#0860FB' : '#182B4D'},
+              styles.dayNumber,
+              item.dateString === selectedDate && styles.selectedDayNumber,
+              isPastDate && styles.disabledText,
             ]}>
-            {moment(item).format('D')} {/* e.g., 4, 5 */}
+            {item.day}
           </Text>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </View>
     );
   };
-
-   const renderItem = ({ item }) => {
-  const isPastDate = moment(item.dateString).isBefore(moment(), 'day');
-
-  return (
-    <View style={{alignItems:'center'}}>
-
-      <Text style={[styles.dayName, isPastDate && styles.disabledText]}>
-        {item.dayName}
-      </Text>
-      <TouchableOpacity
-        style={[
-        styles.dayContainer,
-        item.dateString === selectedDate && styles.selectedDayContainer,
-        isPastDate && styles.disabledDayContainer,
-      ]}
-      onPress={() => {
-        if (!isPastDate) setSelectedDate(item.dateString);
-      }}
-      disabled={isPastDate}
-      >
-      <Text
-        style={[
-          styles.dayNumber,
-          item.dateString === selectedDate && styles.selectedDayNumber,
-          isPastDate && styles.disabledText,
-        ]}
-      >
-        {item.day}
-      </Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
 
   return (
     <ScrollView style={styles.container}>
@@ -284,42 +260,17 @@ const weekDates = useMemo(() => {
       )}
 
       {selectedDate && (
-          <FlatList
-        data={weekDates}
-        horizontal
-        keyExtractor={(item) => item.dateString}
-        renderItem={renderItem}
-        contentContainerStyle={styles.weekList}
-        showsHorizontalScrollIndicator={false}
-      />
-        // <FlatList
-        //   data={availableDates}
-        //   horizontal
-        //   keyExtractor={item => item}
-        //   renderItem={renderDateItem}
-        //   contentContainerStyle={{marginTop: 20}}
-        // />
+        <FlatList
+          data={weekDates}
+          horizontal
+          keyExtractor={item => item.dateString}
+          renderItem={renderItem}
+          contentContainerStyle={styles.weekList}
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={false}
+        />
       )}
-      {/* <View style={styles.dateRow}>
-        {dates.map((date, i) => (
-          <TouchableOpacity
-            key={i}
-            style={[
-              styles.dateItem,
-              selectedDate === date && styles.selectedDate,
-            ]}
-            onPress={() => setSelectedDate(date)}>
-            <Text style={styles.dayText}>{days[i]}</Text>
-            <Text
-              style={[
-                styles.dateText,
-                selectedDate === date && styles.selectedDateText,
-              ]}>
-              {date}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View> */}
+
       <View
         style={{
           width: '96%',
@@ -380,7 +331,11 @@ const weekDates = useMemo(() => {
         <Text style={styles.label}>Duration</Text>
         <View style={styles.durationControl}>
           <TouchableOpacity
-            onPress={() => setDuration(Math.max(1, duration - 1))}
+            onPress={() => {
+              if (duration > 60) {
+                setDuration(duration - 30);
+              }
+            }}
             style={{
               width: 22,
               height: 22,
@@ -393,7 +348,7 @@ const weekDates = useMemo(() => {
             }}>
             <Text style={styles.durationBtn}>-</Text>
           </TouchableOpacity>
-          <Text style={styles.durationText}>{duration} hr</Text>
+          <Text style={styles.durationText}>{formatDuration(duration)} hr</Text>
           <TouchableOpacity
             style={{
               width: 22,
@@ -405,7 +360,7 @@ const weekDates = useMemo(() => {
               borderColor: '#0860FB1A',
               backgroundColor: '#E0E9F9',
             }}
-            onPress={() => setDuration(duration + 1)}>
+            onPress={() => setDuration(duration + 30)}>
             <Text style={styles.durationBtn}>+</Text>
           </TouchableOpacity>
         </View>
@@ -458,11 +413,11 @@ const weekDates = useMemo(() => {
               <Text
                 style={[
                   styles.courtText,
-                  (isSelected || court?.is_booked) && {color: 'white'},
+                  (isSelected || court?.is_booked) && {color: '#5577FF'},
                 ]}>
                 Court
               </Text>
-              <Text style={{fontSize: 18, fontFamily: theme.bold}}>
+              <Text style={{fontSize: 18, fontFamily: theme.bold,color:isSelected ? '#5577FF' :'#182B4D'}}>
                 {court.court_number}
               </Text>
             </TouchableOpacity>
@@ -504,7 +459,7 @@ const styles = StyleSheet.create({
   },
   dateItem: {
     alignItems: 'center',
-    // padding: 10,
+    padding: 10,
     width: 59,
   },
   selectedDate: {
@@ -590,7 +545,8 @@ const styles = StyleSheet.create({
     borderColor: '#D8E2FE',
   },
   selectedCourt: {
-    backgroundColor: '#5577FF',
+    // backgroundColor: '#5577FF',
+    borderColor:'#5577FF'
   },
   disabledCourt: {
     backgroundColor: '#D1D5DB',
@@ -614,7 +570,7 @@ const styles = StyleSheet.create({
     borderColor: '#0860FB',
   },
   /// date pickere=====
-    weekList: {
+  weekList: {
     paddingVertical: 20,
     paddingHorizontal: 10,
   },
@@ -626,8 +582,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     // marginHorizontal: 5,
-    borderWidth:1,
-    borderColor:"#D8E2FE"
+    borderWidth: 1,
+    borderColor: '#D8E2FE',
   },
   selectedDayContainer: {
     borderColor: '#007aff',
@@ -637,6 +593,7 @@ const styles = StyleSheet.create({
   dayName: {
     fontSize: 12,
     color: '#333',
+    paddingBottom: 10,
   },
   dayNumber: {
     fontSize: 18,
@@ -647,13 +604,13 @@ const styles = StyleSheet.create({
     color: '#007aff',
   },
   disabledDayContainer: {
-  backgroundColor: '#e0e0e0',
-  borderColor: '#ccc',
-},
+    backgroundColor: '#e0e0e0',
+    borderColor: '#ccc',
+  },
 
-disabledText: {
-  color: '#999',
-},
+  disabledText: {
+    color: '#999',
+  },
 });
 
 export default BookAppointmentScreen;

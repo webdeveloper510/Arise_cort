@@ -104,12 +104,13 @@ const CheckoutScreen = ({navigation, route}) => {
         <Text style={styles.sectionTitle}>My Details</Text>
         <View style={styles.rowBetween}>
           <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>
-            {data?.user.first_name} {data?.user.last_name}
-          </Text>
+         <Text style={styles.label}>Phone</Text>
         </View>
         <View style={styles.rowBetween}>
-          <Text style={styles.label}>Phone</Text>
+          
+           <Text style={styles.value}>
+            {data?.user.first_name} {data?.user.last_name}
+          </Text>
           <Text style={styles.value}>{data?.user.phone}</Text>
         </View>
         <Text style={[styles.label, {marginTop: 10}]}>email</Text>
@@ -149,7 +150,7 @@ const CheckoutScreen = ({navigation, route}) => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Booking Details</Text>
         {[
-          ['Court Number', `Court No. ${data?.court.court_number}`],
+          ['Court Number', `${data?.court.court_number}`],
           ['Date', `${data?.booking_date}`],
           ['Time', `${timeRange}`],
           ['Duration', `${hours} Hour`],
@@ -197,10 +198,11 @@ const CheckoutScreen = ({navigation, route}) => {
           {[
             ['Amount', `$ ${data?.court.court_fee_hrs}`],
             ['Tax', `$ ${data?.court.tax}`],
-            ['Summary', `$ ${data?.summary}`],
+            ['CC fees',`$ ${data?.cc_fees}`],
+            ['Summary', `$ ${data?.summary}`]
           ].map(([label, value]) => (
             <View style={styles.rowBetween} key={label}>
-              <Text style={styles.label}>{label}</Text>
+              <Text style={[styles.label,{color:label == 'Summary'? '#0860FB' :'#999'}]}>{label}</Text>
               <Text style={styles.value}>{value}</Text>
             </View>
           ))}
@@ -267,6 +269,7 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 14,
     fontFamily: theme.medium,
+    textAlign:'left'
   },
   value: {
     color: '#000',

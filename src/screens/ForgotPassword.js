@@ -50,9 +50,14 @@ const ForgotScreen = ({navigation, route}) => {
     };
     const res = await forgotPasswordApi(body);
     console.log('🚀 ~ handleSubmit ~ res:', res);
-    showMessage({message:res.message,type:'success'})
-    navigation.navigate('OTPVerify',{email:email})
+    if(res.code == '400'){
+      showMessage({message:res.message,type:'danger'})
     setIsLoading(false);
+    }else{
+
+      navigation.navigate('OTPVerify',{email:email})
+      setIsLoading(false);
+    }
   } catch (error) {
     console.log('🚀 ~ handleSubmit ~ error:', error.response);
     setIsLoading(false);

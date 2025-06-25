@@ -15,14 +15,20 @@ import {getAllBookinglist} from '../Apis';
 import Colors from '../constant/Colors';
 import {showMessage} from 'react-native-flash-message';
 import PrimaryButton from '../components/PrimaryButton';
+import moment from 'moment';
 
 
-const BookingsDetailScreen = ({navigation}) => {
+const BookingsDetailScreen = ({navigation,route}) => {
+   const {data}  = route.params
+   console.log("🚀 ~ BookingsDetailScreen ~ data:", data)
   const [Bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
  
 
-
+const formatDuration = (timeStr) => {
+  const d = moment.duration(timeStr);
+  return `${d.hours() ? d.hours() + 'Hour ' : ''}${d.minutes() ? d.minutes() + ' min' : ''}`.trim();
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,13 +37,13 @@ const BookingsDetailScreen = ({navigation}) => {
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Name</Text>
-        <Text style={styles.value}>Dill Dinkers North Bethesda</Text>
+        <Text style={styles.value}>{data.court.location.description}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Location</Text>
         <Text style={styles.value}>
-          41A Spence Ave., Midhurst, Ontario, L9X0P2
+          {data.court.location.address_1},{data.court.location.address_2},{data.court.location.address_3}
         </Text>
       </View>
 
@@ -48,34 +54,34 @@ const BookingsDetailScreen = ({navigation}) => {
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Court Number</Text>
-        <Text style={styles.value}>Court No. 08</Text>
+        <Text style={styles.value}>{data.court.court_number}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Date</Text>
-        <Text style={styles.value}>August 29, 2026</Text>
+        <Text style={styles.value}>{moment(data.booking_date).format('MMMM D, YYYY')}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Time</Text>
-        <Text style={styles.value}>06:30 Am  -  07:30 Am</Text>
+        <Text style={styles.value}>{moment(data.start_time, 'HH:mm:ss').format('hh:mm A')} -  {moment(data.end_time, 'HH:mm:ss').format('hh:mm A')}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Duration</Text>
-        <Text style={styles.value}>1 Hour</Text>
+        <Text style={styles.value}>{formatDuration(data.duration_time)}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Booking ID</Text>
-        <Text style={styles.value}>#32144569870</Text>
+        <Text style={styles.value}>{data.booking_id}</Text>
       </View>
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Amount Paid</Text>
-        <Text style={styles.value}>$57.00</Text>
+        <Text style={styles.value}>${data.summary}</Text>
       </View>
-       <View style={{alignSelf: 'center', width: '100%', alignItems: 'center'}}>
+       {/* <View style={{alignSelf: 'center', width: '100%', alignItems: 'center'}}>
         <PrimaryButton
           title="SEND MESSAGE"
           width={'80%'}
@@ -83,7 +89,7 @@ const BookingsDetailScreen = ({navigation}) => {
         //   onPress={onSubmit}
           isLoading={isLoading}
         />
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 };

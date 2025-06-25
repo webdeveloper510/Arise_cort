@@ -15,7 +15,7 @@ import CountryPicker from '../components/CountryPicker';
 import PrimaryButton from '../components/PrimaryButton';
 import {contactUs} from '../Apis';
 import {showMessage} from 'react-native-flash-message';
-const ContactUsScreen = () => {
+const ContactUsScreen = ({navigation}) => {
   const [callingCode, setCallingCode] = useState('1');
   const [withCountryNameButton] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -73,6 +73,10 @@ const ContactUsScreen = () => {
           showMessage({message: res.message, type: 'danger'});
           setIsLoading(false);
         } else {
+              navigation.reset({
+          index: 0,
+          routes: [{name: 'Home'}],
+        });
           showMessage({message: res.message, type: 'success'});
           setIsLoading(false);
         }
@@ -107,21 +111,33 @@ const ContactUsScreen = () => {
         onChangeText={text => handleChange('firstName', text)}
         placeholder="Enter here..."
       />
-      {errors.firstName && <Text style={styles.error}>{errors.firstName}</Text>}
+      {errors.firstName ? (
+        <Text style={styles.error}>{errors.firstName}</Text>
+      ) : (
+        <View style={{height: 28}} />
+      )}
       <CommonInput
         label="Last Name*"
         value={form.lastName}
         onChangeText={text => handleChange('lastName', text)}
         placeholder="Last Name*"
       />
-      {errors.lastName && <Text style={styles.error}>{errors.lastName}</Text>}
+      {errors.lastName ? (
+        <Text style={styles.error}>{errors.lastName}</Text>
+      ) : (
+        <View style={{height: 28}} />
+      )}
       <CommonInput
         label="Email Address*"
         value={form.email}
         onChangeText={text => handleChange('email', text)}
         placeholder="dummy221email.@gmail.com"
       />
-      {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+      {errors.email ? (
+        <Text style={styles.error}>{errors.email}</Text>
+      ) : (
+        <View style={{height: 28}} />
+      )}
       <View style={styles.container1}>
         <Text style={styles.label}>Phone Number*</Text>
         <View style={styles.phoneContainer}>
@@ -139,6 +155,11 @@ const ContactUsScreen = () => {
               <Image source={flag} style={styles.flag} resizeMode="cover" />
 
               <Text style={styles.countryCode}>+{countryCode}</Text>
+              <Image
+                source={require('../assets/drop.png')}
+                style={{width: 10, height: 10}}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             {/* <Text>🇺🇸 +1</Text> */}
           </View>
@@ -150,10 +171,11 @@ const ContactUsScreen = () => {
         <TextInput
           style={[styles.input, styles.messageBox]}
           placeholder="Type Here*"
-          placeholderTextColor="#999"
+          placeholderTextColor="#EBEBEB"
           multiline
           numberOfLines={5}
           value={form.message}
+          maxLength={100}
           onChangeText={text => handleChange('message', text)}
         />
       </View>
@@ -254,6 +276,7 @@ const styles = StyleSheet.create({
   phoneContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   countryCodeBox: {
     // paddingHorizontal: 12,
@@ -262,6 +285,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: '#D9D9D9',
     height: 30,
+    position: 'absolute',
+    right: 10,
+    top: -9,
   },
   phoneInput: {
     width: '75%',
@@ -270,7 +296,7 @@ const styles = StyleSheet.create({
     // paddingTop:10,
     // paddingVertical: 12,
     fontSize: 12,
-    color: '#000',
+    color: Colors.secondary,
     height: 35,
     backgroundColor: '#fff',
   },
@@ -295,8 +321,8 @@ const styles = StyleSheet.create({
   error: {
     color: 'red',
     fontSize: 12,
-    marginTop: -10,
     marginBottom: 10,
     marginLeft: 10,
+     paddingTop:5
   },
 });
