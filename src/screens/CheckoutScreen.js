@@ -1,4 +1,4 @@
-import React,{useEffect,useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,13 @@ import moment from 'moment';
 import {useStripe} from '@stripe/stripe-react-native';
 import {payDepositcustomer, confirmDeposit} from '../Apis';
 import PrimaryButton from '../components/PrimaryButton';
-import { showMessage } from 'react-native-flash-message';
+import {showMessage} from 'react-native-flash-message';
 const CheckoutScreen = ({navigation, route}) => {
   const {data} = route.params;
   const {confirmPayment} = useStripe();
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
-  const [isLoading,setIsLoading] = useState(false)
-  const [intentId,setClientSecret] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [intentId, setClientSecret] = useState('');
   console.log('🚀 ~ CheckoutScreen ~ data:', data);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const CheckoutScreen = ({navigation, route}) => {
       console.log('🚀 ~ fetchPaymentIntentClientSecret ~ body:', body);
       const res = await payDepositcustomer(body);
       console.log('🚀 ~ fetchPaymentIntentClientSecret ~ data:', res);
-      setClientSecret(res?.client_secret)
+      setClientSecret(res?.client_secret);
       initializePaymentSheet(res?.client_secret);
     } catch (error) {
       console.log('pay deposit error=====>', error);
@@ -61,16 +61,16 @@ const CheckoutScreen = ({navigation, route}) => {
   };
 
   const openPaymentSheet = async () => {
-    console.log("$$$$$$$$$$$$$$$$$$$$$$======>")
+    console.log('$$$$$$$$$$$$$$$$$$$$$$======>');
     const {error} = await presentPaymentSheet();
-    console.log("################======>",error)
+    console.log('################======>', error);
     if (error) {
       showMessage({message: error.code, type: error.message});
       console.log('error payment $$$$====>', error);
     } else {
       console.log('🚀 ~ openPaymentSheet ~ confirmPaymentData:');
       await confirmPaymentData();
-      navigation.navigate('Home');
+      navigation.navigate('Bookings');
       showMessage({message: 'Your Booking is confirmed!', type: 'success'});
     }
   };
@@ -78,7 +78,7 @@ const CheckoutScreen = ({navigation, route}) => {
   const confirmPaymentData = async () => {
     try {
       let body = {
-        payment_intent_id:intentId,
+        payment_intent_id: intentId,
       };
       console.log('🚀 ~ confirmPaymentData ~ body:', body);
       const data = await confirmDeposit(body);
@@ -94,6 +94,14 @@ const CheckoutScreen = ({navigation, route}) => {
   const momentDuration = moment.duration(data?.duration_time);
 
   const hours = momentDuration.hours();
+
+  const minutes = momentDuration.minutes();
+
+  const formattedDuration = `${
+    hours > 0 ? `${hours} hour${hours > 1 ? 's' : ''}` : ''
+  } ${minutes > 0 ? `${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`.trim();
+
+  console.log('⏱ Duration:', formattedDuration);
   return (
     <ScrollView
       style={styles.container}
@@ -104,11 +112,10 @@ const CheckoutScreen = ({navigation, route}) => {
         <Text style={styles.sectionTitle}>My Details</Text>
         <View style={styles.rowBetween}>
           <Text style={styles.label}>Name</Text>
-         <Text style={styles.label}>Phone</Text>
+          <Text style={styles.label}>Phone</Text>
         </View>
         <View style={styles.rowBetween}>
-          
-           <Text style={styles.value}>
+          <Text style={styles.value}>
             {data?.user.first_name} {data?.user.last_name}
           </Text>
           <Text style={styles.value}>{data?.user.phone}</Text>
@@ -153,7 +160,7 @@ const CheckoutScreen = ({navigation, route}) => {
           ['Court Number', `${data?.court.court_number}`],
           ['Date', `${data?.booking_date}`],
           ['Time', `${timeRange}`],
-          ['Duration', `${hours} Hour`],
+          ['Duration', `${formattedDuration}`],
           ['Booking ID', `${data?.booking_id}`],
         ].map(([key, val]) => (
           <View style={styles.rowBetween} key={key}>
@@ -198,11 +205,17 @@ const CheckoutScreen = ({navigation, route}) => {
           {[
             ['Amount', `$ ${data?.court.court_fee_hrs}`],
             ['Tax', `$ ${data?.court.tax}`],
-            ['CC fees',`$ ${data?.cc_fees}`],
-            ['Summary', `$ ${data?.summary}`]
+            ['CC fees', `$ ${data?.cc_fees}`],
+            ['Summary', `$ ${data?.total_price}`],
           ].map(([label, value]) => (
             <View style={styles.rowBetween} key={label}>
-              <Text style={[styles.label,{color:label == 'Summary'? '#0860FB' :'#999'}]}>{label}</Text>
+              <Text
+                style={[
+                  styles.label,
+                  {color: label == 'Summary' ? '#0860FB' : '#999'},
+                ]}>
+                {label}
+              </Text>
               <Text style={styles.value}>{value}</Text>
             </View>
           ))}
@@ -210,13 +223,18 @@ const CheckoutScreen = ({navigation, route}) => {
         {/* <TouchableOpacity style={styles.payBtn} onPress={openPaymentSheet}>
           <Text style={styles.payText}>CONFIRM & PAY NOW</Text>
         </TouchableOpacity> */}
-        <View style={{width:'100%',justifyContent:'center',alignItems:'center'}}>
-        <PrimaryButton
-          title={"CONFIRM & PAY NOW"}
-          onPress={openPaymentSheet}
-          isLoading={isLoading}
-          width={'70%'}
-        />
+        <View
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <PrimaryButton
+            title={'CONFIRM & PAY NOW'}
+            onPress={openPaymentSheet}
+            isLoading={isLoading}
+            width={'70%'}
+          />
         </View>
         <View style={{height: 100}} />
       </View>
@@ -269,7 +287,7 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 14,
     fontFamily: theme.medium,
-    textAlign:'left'
+    textAlign: 'left',
   },
   value: {
     color: '#000',

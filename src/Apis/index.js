@@ -137,7 +137,7 @@ export const getAllCourts = async (query) => {
 };
 export const getAllBookinglist = async data => {
   try {
-    console.log("authApi=====>",authApi)
+   
     const response = await authApi.get('court-bookings/');
     return response.data;
   } catch (error) {
@@ -197,45 +197,13 @@ export const confirmDeposit = async data => {
   }
 };
 
-export const getRetings = async query => {
+export const getProfile = async(param) => {
   try {
-    const response = await axios.get('/customer/rating', {params: query});
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getBookingTimeSlot = async data => {
-  try {
-    data.timezoneDifferenceInMs =
-      new Date().getTimezoneOffset() * 60 * 1000 * -1;
-
-    const response = await authApi.post(
-      '/customer/order/getAllApointments',
-      data,
-    );
-
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getProfessionalBookingApi = async query => {
-  try {
-    console.log("🚀 ~ query:", query)
-    
-    const response = await authApi.get('/merchant/order', {params: query});
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-export const getProfessionalTransactionApi = async query => {
-  try {
-    const response = await authApi.get('/merchant/transaction', {
-      params: query,
+     console.log("authApi=====>",param)
+    const response = await axios.get('profile/',{
+      headers: {
+        Authorization: `Bearer ${param}`,
+      },
     });
     return response.data;
   } catch (error) {
@@ -243,87 +211,15 @@ export const getProfessionalTransactionApi = async query => {
   }
 };
 
-export const getCoupon = async query => {
-  try {
-    const response = await authApi.get('/merchant/coupon');
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
-export const addCoupon = async data => {
-  try {
-    const response = await authApi.post('/merchant/coupon', data);
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
-export const customerFormAnswer = async data => {
-  try {
-    const response = await authApi.post('/customer/formAnswer', data);
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-export const editCoupon = async (id, data) => {
-  try {
-    const response = await authApi.put(`/merchant/coupon/${id}`, data);
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
-export const addAutoMessage = async data => {
-  try {
-    const response = await authApi.post('/merchant/autoMessage', data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
-export const getAutoMessageApi = async () => {
-  try {
-    const response = await authApi.get('/merchant/autoMessage');
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
-export const deletecoupan = async id => {
-  try {
-    const response = await authApi.delete('/merchant/coupon/' + id);
-  } catch (error) {
-    throw error;
-  }
-};
-export const deleteAutoMessageApi = async id => {
-  try {
-    const response = await authApi.delete('/merchant/autoMessage/' + id);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
-export const updateAutoMessage = async (id, data) => {
-  try {
-    const response = await authApi.put('/merchant/autoMessage/' + id, data);
-
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
 
 
 

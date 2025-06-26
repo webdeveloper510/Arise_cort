@@ -25,7 +25,6 @@ const disabledCourts = [3, 6, 15, 17]; // example disabled
 
 const BookAppointmentScreen = ({navigation, route}) => {
   const {id} = route.params;
-  console.log('id===========>', id);
   const [selectedDate, setSelectedDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
@@ -38,7 +37,21 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
   const [courtNumbers, setCourtsNumber] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
-  console.log('🚀 ~ BookAppointmentScreen ~ startTime:', startTime);
+  const [price,setPrice] = useState(0);
+  
+  const [totalPrice, setTotalPrice] = useState(0);
+
+
+  useEffect(() => {
+    calculatePrice(duration);
+  }, [duration, price]);
+
+ const calculatePrice = (duration) => {
+  const hours = duration / 60; // convert minutes to hours
+  const price1 = Math.ceil(hours * price); // round up to nearest rupee
+  setTotalPrice(price1);
+};
+
   const handleTimeConfirm = date => {
     setStartTime(date);
     setTimePickerVisible(false);
@@ -134,6 +147,8 @@ const BookAppointmentScreen = ({navigation, route}) => {
         end_time: moment(end).format('HH:mm:ss'),
         duration_time: formatDuration(duration),
         court_id: selectedCourt,
+        book_for_six_months:'false',
+        total_price :totalPrice
       };
       console.log('🚀 ~ onSubmit ~ body:', body);
       const res = await courtBooking(body);
@@ -172,44 +187,47 @@ const BookAppointmentScreen = ({navigation, route}) => {
     });
   }, [selectedDate]);
 
-  const weekDates = useMemo(() => {
-    const startOfWeek = moment(selectedDate).startOf('week'); // Always Sunday
+ const weekDates = useMemo(() => {
     const days = [];
+    const today = moment();
+
     for (let i = 0; i < 7; i++) {
-      const date = moment(startOfWeek).add(i, 'days');
+      const date = moment(today).add(i, 'days');
       days.push({
         dateString: date.format('YYYY-MM-DD'),
         day: date.date(),
         dayName: date.format('ddd'),
       });
     }
+
     return days;
-  }, [selectedDate]);
+  }, []);
 
   const renderItem = ({item, index}) => {
-    const isPastDate = moment(item.dateString).isBefore(moment(), 'day');
+  
 
     return (
       <View
         style={{alignItems: 'center', marginHorizontal: index == 0 ? 0 : 5}}>
-        <Text style={[styles.dayName, isPastDate && styles.disabledText]}>
+        <Text style={[styles.dayName]}>
           {item.dayName}
         </Text>
         <TouchableOpacity
           style={[
             styles.dayContainer,
-            item.dateString === selectedDate && styles.selectedDayContainer,
-            isPastDate && styles.disabledDayContainer,
+            item.dateString === selectedDate && styles.selectedDayContainer
           ]}
           onPress={() => {
-            if (!isPastDate) setSelectedDate(item.dateString);
+             setSelectedDate(item.dateString);
+             if(selectedDate){
+              getCourts()
+             }
           }}
-          disabled={isPastDate}>
+          >
           <Text
             style={[
               styles.dayNumber,
-              item.dateString === selectedDate && styles.selectedDayNumber,
-              isPastDate && styles.disabledText,
+              item.dateString === selectedDate && styles.selectedDayNumber
             ]}>
             {item.day}
           </Text>
@@ -397,14 +415,14 @@ const BookAppointmentScreen = ({navigation, route}) => {
           const isSelected = selectedCourt === court.court_id;
           console.log(
             '🚀 ~ BookAppointmentScreen123 ~ isSelected:',
-            isSelected,
+            court,
           );
 
           return (
             <TouchableOpacity
               key={index}
               disabled={court?.is_booked}
-              onPress={() => setSelectedCourt(court.court_id)}
+              onPress={() =>{ setSelectedCourt(court.court_id),setPrice(Number(court.price_per_hour))}}
               style={[
                 styles.courtBox,
                 isSelected && styles.selectedCourt,

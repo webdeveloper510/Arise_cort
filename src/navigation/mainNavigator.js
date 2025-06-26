@@ -8,9 +8,13 @@ import AuthStack from './AuthStack';
 import MainStack from './mainStack';
 import Colors from '../constant/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useDispatch, useSelector} from 'react-redux';
+import { SaveUserInfo } from '../redux/userData';
+import { getProfile } from '../Apis';
 const Stack = createNativeStackNavigator();
 
-const MainNavigator = () => {
+const MainNavigator = ({navigation}) => {
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,7 +24,7 @@ const MainNavigator = () => {
       try {
         const onboarded = await AsyncStorage.getItem('isOnboarded');
         const userToken = await AsyncStorage.getItem('TOKEN'); // from your login API
-
+      getProfileData(userToken)
         setIsOnboarded(onboarded === 'true');
         setIsLoggedIn(!!userToken);
 
@@ -30,10 +34,34 @@ const MainNavigator = () => {
         setIsLoading(false);
       }
     };
-
+  
     checkInitialState();
   }, []);
-
+   const handleButton = async () => {
+  try {
+    await AsyncStorage.clear();
+    dispatch(SaveUserInfo(null));
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  } catch (error) {
+    console.log('Logout error:', error);
+    showMessage({ message: 'Logout failed. Please try again.', type: 'danger' });
+  }
+};
+  const getProfileData=async(value)=>{
+    try{
+     let res = await getProfile(value)
+     if(res.code == '200'){
+      dispatch(SaveUserInfo(res.data))
+     }
+     console.log("🚀 ~ getProfileData ~ res:", res)
+    }catch(error){
+    console.log("🚀 ~ getProfileData ~ error:", error)
+    handleButton()
+    }
+  }
   if (isLoading) return <SplashScreen />;
 
   return (

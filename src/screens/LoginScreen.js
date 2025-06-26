@@ -216,7 +216,7 @@ const LoginScreen = ({navigation}) => {
             rightIcon={
               <TouchableOpacity onPress={() => setHidePassword(!hidePassword)}>
                 <Image
-                  source={require('../assets/eye.png')}
+                  source={hidePassword ? require('../assets/eye.png') : require('../assets/visible.png')}
                   style={{width: 17, height: 16, paddingRight: 10}}
                 />
               </TouchableOpacity>

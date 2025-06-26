@@ -12,9 +12,11 @@ import {
 import CommonHeader from '../components/CommonHeader';
 import CourtItem from '../components/CourtItem';
 import Feather from '@react-native-vector-icons/feather';
-import {getAllCourts} from '../Apis';
+import {getAllCourts,getProfile} from '../Apis';
 import theme from '../constant/theme';
+import {useDispatch, useSelector} from 'react-redux';
 import Colors from '../constant/Colors';
+import { SaveUserInfo } from '../redux/userData';
 // const MOCK_DATA = [
 //   {
 //     id: '1',
@@ -37,6 +39,7 @@ import Colors from '../constant/Colors';
 // ];
 
 const SearchCourtScreen = ({navigation}) => {
+  const dispatch = useDispatch();
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -54,8 +57,22 @@ const SearchCourtScreen = ({navigation}) => {
 
   useEffect(() => {
     getAllDAta();
+    // getProfileData();
   }, []);
 
+
+  const getProfileData=async()=>{
+      try{
+       let res = await getProfile()
+          if(res.code == '200'){
+            dispatch(SaveUserInfo(res.data))
+          }
+       console.log("🚀 ~ getProfileData ~ res:", res)
+      }catch(error){
+      console.log("🚀 ~ getProfileData ~ error:", error.response)
+  
+      }
+    }
   const getAllDAta = async () => {
     try {
       setLoading(true);
@@ -137,8 +154,8 @@ const SearchCourtScreen = ({navigation}) => {
         />
       )}
 
-      {!loading > 0 && (
-        <TouchableOpacity style={styles.continueBtn} onPress={()=> navigation.navigate('BookAppointmentScreen',{id:selectedItem?.id})}>
+      {!loading > 0 && selectedItem?.id && (
+        <TouchableOpacity style={styles.continueBtn} onPress={()=> navigation.navigate('BookAppointmentScreen',{id:selectedItem?.id})} >
           <Text style={styles.continueText}>CONTINUE</Text>
         </TouchableOpacity>
       )}
