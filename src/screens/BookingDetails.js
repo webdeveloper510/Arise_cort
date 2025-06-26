@@ -79,7 +79,7 @@ const formatDuration = (timeStr) => {
 
       <View style={styles.detailRow}>
         <Text style={styles.label}>Amount Paid</Text>
-        <Text style={styles.value}>${data.summary}</Text>
+        <Text style={styles.value}>${data.total_price}</Text>
       </View>
        {/* <View style={{alignSelf: 'center', width: '100%', alignItems: 'center'}}>
         <PrimaryButton
