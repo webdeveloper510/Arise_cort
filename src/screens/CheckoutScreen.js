@@ -70,7 +70,11 @@ const CheckoutScreen = ({navigation, route}) => {
     } else {
       console.log('🚀 ~ openPaymentSheet ~ confirmPaymentData:');
       await confirmPaymentData();
-      navigation.navigate('Bookings');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Bookings'}],
+      });
+      // navigation.navigate('Bookings');
       showMessage({message: 'Your Booking is confirmed!', type: 'success'});
     }
   };
@@ -184,12 +188,13 @@ const CheckoutScreen = ({navigation, route}) => {
         <Text style={styles.sectionTitle}>Payment Method</Text>
         <View style={styles.paymentMethod}>
           <Image
-            source={{
-              uri: 'https://cdn-icons-png.flaticon.com/512/196/196566.png',
-            }}
+            // source={{
+            //   uri: 'https://stripe.com/img/v3/home/twitter.png',
+            // }}
+            source={require('../assets/stripe.png')}
             style={styles.icon}
           />
-          <Text style={styles.value}>Paypal</Text>
+          {/* <Text style={styles.value}>Stripe</Text> */}
           <View style={styles.radioSelected} />
         </View>
       </View>
@@ -203,10 +208,10 @@ const CheckoutScreen = ({navigation, route}) => {
           ]}>
           <Text style={styles.sectionTitle}>Payment Summary</Text>
           {[
-            ['Amount', `$ ${data?.court.court_fee_hrs}`],
+            ['Amount', `$ ${data?.amount}`],
             ['Tax', `$ ${data?.court.tax}`],
             ['CC fees', `$ ${data?.cc_fees}`],
-            ['Summary', `$ ${data?.total_price}`],
+            ['Summary', `$ ${data?.summary}`],
           ].map(([label, value]) => (
             <View style={styles.rowBetween} key={label}>
               <Text
@@ -303,11 +308,13 @@ const styles = StyleSheet.create({
     borderColor: '#D8E2FE',
     borderRadius: 15,
     backgroundColor: Colors.white,
+    paddingLeft: 20,
   },
   icon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
+    width: 28,
+    height: 28,
+    paddingLeft: 10,
+    // marginRight: 10,
   },
   radioSelected: {
     width: 16,

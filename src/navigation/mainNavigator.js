@@ -14,6 +14,7 @@ import { getProfile } from '../Apis';
 const Stack = createNativeStackNavigator();
 
 const MainNavigator = ({navigation}) => {
+  const user = useSelector(state => state.userData);
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboarded, setIsOnboarded] = useState(false);
@@ -24,7 +25,7 @@ const MainNavigator = ({navigation}) => {
       try {
         const onboarded = await AsyncStorage.getItem('isOnboarded');
         const userToken = await AsyncStorage.getItem('TOKEN'); // from your login API
-      getProfileData(userToken)
+        getProfileData(userToken)
         setIsOnboarded(onboarded === 'true');
         setIsLoggedIn(!!userToken);
 
@@ -73,7 +74,7 @@ const MainNavigator = ({navigation}) => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isOnboarded ? (
           <Stack.Screen name="OnboardingStack" component={OnboardingStack} />
-        ) : !isLoggedIn ? (
+        ) : !user ? (
           <Stack.Screen name="AuthStack" component={AuthStack} />
         ) : (
           <Stack.Screen name="MainStack" component={MainStack} />

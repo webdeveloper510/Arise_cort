@@ -16,7 +16,7 @@ import {getCourtById} from '../Apis';
 import {Calendar} from 'react-native-calendars';
 import {courtBooking, courtAvailability} from '../Apis';
 import moment from 'moment';
-import { showMessage } from 'react-native-flash-message';
+import {showMessage} from 'react-native-flash-message';
 
 const durationOptions = [1, 2];
 
@@ -37,27 +37,27 @@ const BookAppointmentScreen = ({navigation, route}) => {
 
   const [courtNumbers, setCourtsNumber] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [price,setPrice] = useState(0);
-  
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [price, setPrice] = useState(0);
 
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     calculatePrice(duration);
   }, [duration, price]);
 
- const calculatePrice = (duration) => {
-  const hours = duration / 60; // convert minutes to hours
-  const price1 = Math.ceil(hours * price); // round up to nearest rupee
-  setTotalPrice(price1);
-};
+  const calculatePrice = duration => {
+    const hours = duration / 60; // convert minutes to hours
+    const price1 = Math.ceil(hours * price);
+     console.log("🚀 ~ BookAppointmentScreen ~ price1:", price1)
+     // round up to nearest rupee
+    setTotalPrice(price1);
+  };
 
   const handleTimeConfirm = date => {
     setStartTime(date);
     setTimePickerVisible(false);
     getCourts();
   };
-  console.log('🚀 ~ BookAppointmentScreen ~ date:', startTime);
 
   const formatTime = date =>
     date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
@@ -74,7 +74,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
     return `${hrs}:${mins === 0 ? '00' : mins}`;
   };
   useEffect(() => {
-    // getCourtData();
+    getCourtData();
   }, [id]);
 
   const availableDates = useMemo(() => {
@@ -114,10 +114,10 @@ const BookAppointmentScreen = ({navigation, route}) => {
         start_time: moment(startTime).format('HH:mm:ss'),
         end_time: moment(end).format('HH:mm:ss'),
       };
-      console.log('🚀 ~ getCourts ~ body:', body);
+      // console.log('🚀 ~ getCourts ~ body:', body);
 
       let res = await courtAvailability(body);
-      console.log('🚀 ~ getCourts ~ res:', res);
+      // console.log('🚀 ~ getCourts ~ res:', res);
       setCourtsNumber(res.courts);
     } catch (error) {
       console.log('🚀 ~ getCourts ###############~ error:', error);
@@ -132,8 +132,8 @@ const BookAppointmentScreen = ({navigation, route}) => {
   //     .padStart(2, '0')}`;
   // };
   const onSubmit = async () => {
-      if (!selectedCourt) {
-      showMessage({message:"Please select court number!",type:'danger'})
+    if (!selectedCourt) {
+      showMessage({message: 'Please select court number!', type: 'danger'});
       return;
     }
 
@@ -147,8 +147,8 @@ const BookAppointmentScreen = ({navigation, route}) => {
         end_time: moment(end).format('HH:mm:ss'),
         duration_time: formatDuration(duration),
         court_id: selectedCourt,
-        book_for_six_months:'false',
-        total_price :totalPrice
+        book_for_six_months: 'false',
+        total_price: totalPrice,
       };
       console.log('🚀 ~ onSubmit ~ body:', body);
       const res = await courtBooking(body);
@@ -187,7 +187,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
     });
   }, [selectedDate]);
 
- const weekDates = useMemo(() => {
+  const weekDates = useMemo(() => {
     const days = [];
     const today = moment();
 
@@ -204,30 +204,25 @@ const BookAppointmentScreen = ({navigation, route}) => {
   }, []);
 
   const renderItem = ({item, index}) => {
-  
-
     return (
       <View
         style={{alignItems: 'center', marginHorizontal: index == 0 ? 0 : 5}}>
-        <Text style={[styles.dayName]}>
-          {item.dayName}
-        </Text>
+        <Text style={[styles.dayName]}>{item.dayName}</Text>
         <TouchableOpacity
           style={[
             styles.dayContainer,
-            item.dateString === selectedDate && styles.selectedDayContainer
+            item.dateString === selectedDate && styles.selectedDayContainer,
           ]}
           onPress={() => {
-             setSelectedDate(item.dateString);
-             if(selectedDate){
-              getCourts()
-             }
-          }}
-          >
+            setSelectedDate(item.dateString);
+            if (selectedDate) {
+              getCourts();
+            }
+          }}>
           <Text
             style={[
               styles.dayNumber,
-              item.dateString === selectedDate && styles.selectedDayNumber
+              item.dateString === selectedDate && styles.selectedDayNumber,
             ]}>
             {item.day}
           </Text>
@@ -310,7 +305,7 @@ const BookAppointmentScreen = ({navigation, route}) => {
           <Text style={{fontSize: 11, color: '#0860FB', paddingRight: 8}}>
             {moment(selectedDate).format('MMMM D, YYYY')}
           </Text>
-          <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)}>
+          <TouchableOpacity>
             <Feather name="chevron-down" color="#192C4E" size={20} />
           </TouchableOpacity>
         </View>
@@ -413,16 +408,58 @@ const BookAppointmentScreen = ({navigation, route}) => {
       <View style={styles.courtGrid}>
         {courtNumbers.map((court, index) => {
           const isSelected = selectedCourt === court.court_id;
-          console.log(
-            '🚀 ~ BookAppointmentScreen123 ~ isSelected:',
-            court,
-          );
+          // console.log('🚀 ~ BookAppointmentScreen123 ~ isSelected:', court);
 
           return (
             <TouchableOpacity
               key={index}
               disabled={court?.is_booked}
-              onPress={() =>{ setSelectedCourt(court.court_id),setPrice(Number(court.price_per_hour))}}
+              // onPress={() =>{ setSelectedCourt(court.court_id),setPrice(Number(court.price_per_hour))}}
+              onPress={() => {
+                const baseDate = selectedDate;
+                // Court time in 24-hour format with seconds
+                const courtStart = moment(
+                  `${baseDate} ${court.start_time}`,
+                  'YYYY-MM-DD HH:mm:ss',
+                );
+                const courtEnd = moment(
+                  `${baseDate} ${court.end_time}`,
+                  'YYYY-MM-DD HH:mm:ss',
+                );
+
+                // Selected time in 12-hour format (e.g. "5:00 PM")
+                const selectedStart = moment(
+                  `${baseDate} ${formatTime(startTime)}`,
+                  'YYYY-MM-DD h:mm A',
+                );
+                const selectedEnd = moment(
+                  `${baseDate} ${getEndTime()}`,
+                  'YYYY-MM-DD h:mm A',
+                );
+
+                console.log({
+                  courtStart: courtStart.format('HH:mm:ss'),
+                  courtEnd: courtEnd.format('HH:mm:ss'),
+                  selectedStart: selectedStart.format('HH:mm:ss'),
+                  selectedEnd: selectedEnd.format('HH:mm:ss'),
+                });
+
+                const isValidTime =
+                  selectedStart.isSameOrAfter(courtStart) &&
+                  selectedEnd.isSameOrBefore(courtEnd);
+
+                if (!isValidTime) {
+                  showMessage({
+                    message: 'Court is not available during the selected time.',
+                    type: 'danger',
+                  });
+                  return;
+                }
+
+                // Valid time – proceed
+                setSelectedCourt(court.court_id);
+                setPrice(Number(court.court_fee_hrs));
+              }}
               style={[
                 styles.courtBox,
                 isSelected && styles.selectedCourt,
@@ -435,7 +472,12 @@ const BookAppointmentScreen = ({navigation, route}) => {
                 ]}>
                 Court
               </Text>
-              <Text style={{fontSize: 18, fontFamily: theme.bold,color:isSelected ? '#5577FF' :'#182B4D'}}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: theme.bold,
+                  color: isSelected ? '#5577FF' : '#182B4D',
+                }}>
                 {court.court_number}
               </Text>
             </TouchableOpacity>
@@ -564,7 +606,7 @@ const styles = StyleSheet.create({
   },
   selectedCourt: {
     // backgroundColor: '#5577FF',
-    borderColor:'#5577FF'
+    borderColor: '#5577FF',
   },
   disabledCourt: {
     backgroundColor: '#D1D5DB',

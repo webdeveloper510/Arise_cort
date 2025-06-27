@@ -73,10 +73,10 @@ const ContactUsScreen = ({navigation}) => {
           showMessage({message: res.message, type: 'danger'});
           setIsLoading(false);
         } else {
-              navigation.reset({
-          index: 0,
-          routes: [{name: 'Home'}],
-        });
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'Home'}],
+          });
           showMessage({message: res.message, type: 'success'});
           setIsLoading(false);
         }
@@ -323,6 +323,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 10,
     marginLeft: 10,
-     paddingTop:5
+    paddingTop: 5,
   },
 });

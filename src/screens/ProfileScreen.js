@@ -43,10 +43,7 @@ const handleButton = async () => {
   try {
     await AsyncStorage.clear();
     dispatch(SaveUserInfo(null));
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+    navigation.navigate('Login');
   } catch (error) {
     console.log('Logout error:', error);
     showMessage({ message: 'Logout failed. Please try again.', type: 'danger' });
